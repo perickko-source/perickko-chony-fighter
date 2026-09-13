@@ -219,18 +219,20 @@
         }
 
         .personaje-opcion {
-            cursor: pointer;
             text-align: center;
             padding: 8px;
             border: 2px solid #555;
             border-radius: 5px;
-            transition: all 0.3s;
+            transition: all 0.2s;
             background: rgba(255,255,255,0.1);
         }
 
-        .personaje-opcion:hover, .personaje-opcion:active {
-            border-color: #ff0;
-            background: rgba(255,255,0,0.2);
+        /* CURSOR AMARILLO DE SELECCIÓN */
+        .personaje-opcion.seleccionado {
+            border: 3px solid #ff0;
+            background: rgba(255,255,0,0.25);
+            box-shadow: 0 0 15px rgba(255,255,0,0.6);
+            transform: scale(1.05);
         }
 
         .personaje-opcion img {
@@ -257,34 +259,24 @@
             font-size: 14px;
             background: #ff0;
             color: #000;
-            border: none;
+            border: 3px solid #555;
             border-radius: 5px;
             cursor: pointer;
             font-family: 'Arial Black', sans-serif;
             font-weight: bold;
             margin-top: 10px;
+            transition: all 0.2s;
         }
 
-        .btn-juego:hover, .btn-juego:active {
+        /* CURSOR AMARILLO EN BOTONES DE MENÚ */
+        .btn-juego.seleccionado {
+            border-color: #ff0;
             background: #fff;
+            box-shadow: 0 0 15px rgba(255,255,0,0.8);
+            transform: scale(1.1);
         }
 
         .oculto { display: none !important; }
-
-        #controles-info {
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            font-size: 8px;
-            text-align: center;
-            background: rgba(0,0,0,0.7);
-            padding: 3px 10px;
-            border-radius: 3px;
-            z-index: 100;
-            white-space: nowrap;
-        }
 
         #anuncio {
             position: absolute;
@@ -368,6 +360,21 @@
         #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
 
         .boton-tactil.activo { opacity: 0.3; }
+
+        /* Indicador de modo */
+        #modo-indicador {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #0f0;
+            font-size: 9px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 3px;
+            z-index: 100;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -378,6 +385,8 @@
 
             <div id="pantalla-juego">
                 <div id="juego">
+                    <div id="modo-indicador">MENÚ: Elige personaje</div>
+
                     <div id="hud" class="oculto">
                         <div class="barra-vida-container">
                             <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
@@ -403,14 +412,10 @@
                     <div id="jugador" class="luchador oculto"><canvas></canvas></div>
                     <div id="rival" class="luchador oculto"><canvas></canvas></div>
 
-                    <div id="controles-info" class="oculto">
-                        Cruceta: Mover | A: Puñetazo | B: Patada | X: Especial | Y: Defensa
-                    </div>
-
                     <div id="pantalla-round">
                         <h2 id="round-titulo">¡ROUND 2!</h2>
                         <p id="round-mensaje">Prepárate</p>
-                        <button class="btn-juego" onclick="siguienteRound()">CONTINUAR</button>
+                        <button class="btn-juego seleccionado" id="btn-continuar">CONTINUAR</button>
                     </div>
 
                     <div id="pantalla-inicio" class="pantalla">
@@ -418,17 +423,17 @@
                         <h2>ELIGE TU LUCHADOR</h2>
                         
                         <div class="selector-personajes">
-                            <div class="personaje-opcion" onclick="seleccionarPersonaje(1)">
+                            <div class="personaje-opcion seleccionado" data-personaje="1">
                                 <img src="001.png" alt="Personaje 1">
                                 <h3>Abuela Tech</h3>
                                 <div class="stats">Vida: ★★★<br>Vel: ★★<br>Daño: ★★</div>
                             </div>
-                            <div class="personaje-opcion" onclick="seleccionarPersonaje(2)">
+                            <div class="personaje-opcion" data-personaje="2">
                                 <img src="002.png" alt="Personaje 2">
                                 <h3>Niña Punk</h3>
                                 <div class="stats">Vida: ★★<br>Vel: ★★★<br>Daño: ★★★</div>
                             </div>
-                            <div class="personaje-opcion" onclick="seleccionarPersonaje(3)">
+                            <div class="personaje-opcion" data-personaje="3">
                                 <img src="003.png" alt="Personaje 3">
                                 <h3>Abuela Cool</h3>
                                 <div class="stats">Vida: ★★★★<br>Vel: ★<br>Daño: ★★★</div>
@@ -439,7 +444,7 @@
                     <div id="pantalla-final" class="pantalla oculto">
                         <h1 id="resultado-final-titulo">¡GANASTE!</h1>
                         <div id="resultado-final"></div>
-                        <button class="btn-juego" onclick="location.reload()">JUGAR OTRA VEZ</button>
+                        <button class="btn-juego seleccionado" id="btn-reiniciar">JUGAR OTRA VEZ</button>
                     </div>
                 </div>
             </div>
@@ -463,9 +468,11 @@
         // VIBRACIÓN AL PULSAR BOTONES
         // ============================================================
         function vibrarBoton() {
-            if (navigator.vibrate) {
-                navigator.vibrate(100); // 100ms de vibración (más notable)
-            }
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate(30);
+                }
+            } catch(e) {}
         }
 
         function escalarConsola() {
@@ -616,14 +623,109 @@
             });
         }
 
+        // ============================================================
+        // SISTEMA DE MENÚS CON NAVEGACIÓN POR BOTONES
+        // ============================================================
+        
+        // Estados del juego: 'menu', 'combate', 'round', 'final'
+        let estadoJuego = 'menu';
+        
+        // Índice de selección en el menú de personajes (0, 1, 2)
+        let indicePersonaje = 0;
+        
+        // Cooldown para evitar cambios demasiado rápidos
+        let menuCooldown = false;
+
+        function actualizarSeleccionMenu() {
+            // Quitar selección de todos los personajes
+            document.querySelectorAll('.personaje-opcion').forEach(el => {
+                el.classList.remove('seleccionado');
+            });
+            
+            // Añadir selección al actual
+            const opciones = document.querySelectorAll('.personaje-opcion');
+            if (opciones[indicePersonaje]) {
+                opciones[indicePersonaje].classList.add('seleccionado');
+            }
+            
+            // Actualizar indicador
+            const nombres = ['Abuela Tech', 'Niña Punk', 'Abuela Cool'];
+            document.getElementById('modo-indicador').innerText = 'MENÚ: ' + nombres[indicePersonaje];
+        }
+
+        function confirmarSeleccionPersonaje() {
+            const num = indicePersonaje + 1;
+            seleccionarPersonaje(num);
+        }
+
+        function seleccionarPersonaje(num) {
+            initAudio();
+            vibrarBoton();
+            jugadorNum = num;
+            rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
+            rivalesDisponibles.sort(() => Math.random() - 0.5);
+            indiceRivalActual = 0;
+            jugadorConfig = PERSONAJES[jugadorNum];
+            rivalNum = rivalesDisponibles[0];
+            rivalConfig = PERSONAJES[rivalNum];
+            roundActual = 1; victoriasJugador = 0; victoriasRival = 0;
+            iniciarRound();
+        }
+
+        // ============================================================
+        // CONTROLES TÁCTILES (botones físicos de la consola)
+        // ============================================================
         const teclas = {};
 
         function activarTecla(tecla) { 
             teclas[tecla] = true; 
             initAudio();
-            vibrarBoton(); // ← VIBRACIÓN AL PULSAR CUALQUIER BOTÓN
+            vibrarBoton();
+            
+            // Manejar navegación de menús
+            if (estadoJuego === 'menu') {
+                manejarMenu(tecla);
+            } else if (estadoJuego === 'round') {
+                manejarRound(tecla);
+            } else if (estadoJuego === 'final') {
+                manejarFinal(tecla);
+            }
         }
+        
         function desactivarTecla(tecla) { teclas[tecla] = false; }
+
+        function manejarMenu(tecla) {
+            if (menuCooldown) return;
+            
+            if (tecla === 'arrowleft') {
+                indicePersonaje = Math.max(0, indicePersonaje - 1);
+                actualizarSeleccionMenu();
+                menuCooldown = true;
+                setTimeout(() => menuCooldown = false, 200);
+            } else if (tecla === 'arrowright') {
+                indicePersonaje = Math.min(2, indicePersonaje + 1);
+                actualizarSeleccionMenu();
+                menuCooldown = true;
+                setTimeout(() => menuCooldown = false, 200);
+            } else if (tecla === 'z' || tecla === 'start') {
+                // Confirmar selección (A o Start)
+                confirmarSeleccionPersonaje();
+            }
+        }
+
+        function manejarRound(tecla) {
+            if (tecla === 'z' || tecla === 'start') {
+                // Confirmar continuar (A o Start)
+                siguienteRound();
+            }
+        }
+
+        function manejarFinal(tecla) {
+            if (tecla === 'z' || tecla === 'start') {
+                // Reiniciar juego (A o Start)
+                location.reload();
+            }
+        }
 
         document.querySelectorAll('.boton-tactil').forEach(btn => {
             const tecla = btn.dataset.tecla;
@@ -635,9 +737,17 @@
             btn.addEventListener('mouseleave', () => { desactivarTecla(tecla); btn.classList.remove('activo'); });
         });
 
-        document.addEventListener('keydown', (e) => { teclas[e.key.toLowerCase()] = true; e.preventDefault(); initAudio(); });
+        document.addEventListener('keydown', (e) => { 
+            teclas[e.key.toLowerCase()] = true; 
+            e.preventDefault(); 
+            initAudio();
+            activarTecla(e.key.toLowerCase());
+        });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
+        // ============================================================
+        // CONFIGURACIÓN DE PERSONAJES
+        // ============================================================
         const PERSONAJES = {
             1: { nombre: 'Abuela Tech', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
             2: { nombre: 'Niña Punk', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
@@ -702,24 +812,12 @@
             dibujarFrame(canvas, spriteSheets[num], frame[0], frame[1], voltear);
         }
 
-        function seleccionarPersonaje(num) {
-            initAudio();
-            jugadorNum = num;
-            rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
-            rivalesDisponibles.sort(() => Math.random() - 0.5);
-            indiceRivalActual = 0;
-            jugadorConfig = PERSONAJES[jugadorNum];
-            rivalNum = rivalesDisponibles[0];
-            rivalConfig = PERSONAJES[rivalNum];
-            roundActual = 1; victoriasJugador = 0; victoriasRival = 0;
-            iniciarRound();
-        }
-
         function iniciarRound() {
+            estadoJuego = 'combate';
+            document.getElementById('modo-indicador').innerText = 'COMBATE: Round ' + roundActual;
             document.getElementById('pantalla-inicio').classList.add('oculto');
             document.getElementById('pantalla-final').classList.add('oculto');
             document.getElementById('hud').classList.remove('oculto');
-            document.getElementById('controles-info').classList.remove('oculto');
             document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
             document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
             document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + TOTAL_ROUNDS;
@@ -895,6 +993,8 @@
         }
 
         function mostrarPantallaRound(ganoJugador) {
+            estadoJuego = 'round';
+            document.getElementById('modo-indicador').innerText = 'FIN DE ROUND: Pulsa A para continuar';
             roundActual++;
             indiceRivalActual = (indiceRivalActual + 1) % rivalesDisponibles.length;
             rivalNum = rivalesDisponibles[indiceRivalActual];
@@ -909,6 +1009,7 @@
         }
 
         function siguienteRound() {
+            vibrarBoton();
             document.getElementById('pantalla-round').classList.remove('visible');
             estadoJugador = 'idle'; estadoRival = 'idle';
             estaSaltando = false; estaDefendiendo = false; cooldownAtaque = false;
@@ -916,8 +1017,9 @@
         }
 
         function mostrarResultadoFinal(gano) {
+            estadoJuego = 'final';
+            document.getElementById('modo-indicador').innerText = 'FIN DEL JUEGO: Pulsa A para reiniciar';
             document.getElementById('hud').classList.add('oculto');
-            document.getElementById('controles-info').classList.add('oculto');
             document.getElementById('jugador').classList.add('oculto');
             document.getElementById('rival').classList.add('oculto');
             const titulo = document.getElementById('resultado-final-titulo');
@@ -965,6 +1067,9 @@
             document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / rivalConfig.vida) * 100) + '%';
         }
 
+        // Inicializar selección del menú
+        actualizarSeleccionMenu();
+        
         cargarSpriteSheets().then(() => console.log('Spritesheets cargados')).catch(() => console.error('Error cargando spritesheets'));
     </script>
 </body>
