@@ -356,79 +356,18 @@
             opacity: 0.3;
         }
 
-        #btn-up {
-            top: 586px;
-            left: 113px;
-            width: 70px;
-            height: 70px;
-        }
+        #btn-up { top: 586px; left: 113px; width: 70px; height: 70px; }
+        #btn-down { top: 733px; left: 117px; width: 70px; height: 70px; }
+        #btn-left { top: 657px; left: 43px; width: 70px; height: 70px; }
+        #btn-right { top: 657px; left: 183px; width: 70px; height: 70px; }
+        #btn-x { top: 585px; left: 392px; width: 75px; height: 75px; }
+        #btn-y { top: 661px; left: 321px; width: 75px; height: 75px; }
+        #btn-a { top: 660px; left: 465px; width: 75px; height: 75px; }
+        #btn-b { top: 734px; left: 395px; width: 75px; height: 75px; }
+        #btn-select { top: 875px; left: 209px; width: 85px; height: 45px; }
+        #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
 
-        #btn-down {
-            top: 733px;
-            left: 117px;
-            width: 70px;
-            height: 70px;
-        }
-
-        #btn-left {
-            top: 657px;
-            left: 43px;
-            width: 70px;
-            height: 70px;
-        }
-
-        #btn-right {
-            top: 657px;
-            left: 183px;
-            width: 70px;
-            height: 70px;
-        }
-
-        #btn-x {
-            top: 585px;
-            left: 392px;
-            width: 75px;
-            height: 75px;
-        }
-
-        #btn-y {
-            top: 661px;
-            left: 321px;
-            width: 75px;
-            height: 75px;
-        }
-
-        #btn-a {
-            top: 660px;
-            left: 465px;
-            width: 75px;
-            height: 75px;
-        }
-
-        #btn-b {
-            top: 734px;
-            left: 395px;
-            width: 75px;
-            height: 75px;
-        }
-
-        #btn-select {
-            top: 875px;
-            left: 209px;
-            width: 85px;
-            height: 45px;
-        }
-
-        #btn-start {
-            top: 874px;
-            left: 298px;
-            width: 85px;
-            height: 45px;
-        }
-
-        .boton-tactil.activo {
-            opacity: 0.3;
-        }
+        .boton-tactil.activo { opacity: 0.3; }
     </style>
 </head>
 <body>
@@ -520,14 +459,21 @@
     </div>
 
     <script>
+        // ============================================================
+        // VIBRACIÓN AL PULSAR BOTONES
+        // ============================================================
+        function vibrarBoton() {
+            if (navigator.vibrate) {
+                navigator.vibrate(25); // 25ms de vibración al pulsar cualquier botón
+            }
+        }
+
         function escalarConsola() {
             const wrapper = document.getElementById('consola-wrapper');
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
-            const consolaWidth = 572;
-            const consolaHeight = 1024;
-            const scaleX = windowWidth / consolaWidth;
-            const scaleY = windowHeight / consolaHeight;
+            const scaleX = windowWidth / 572;
+            const scaleY = windowHeight / 1024;
             const scale = Math.min(scaleX, scaleY, 1);
             wrapper.style.transform = `scale(${scale})`;
         }
@@ -672,7 +618,11 @@
 
         const teclas = {};
 
-        function activarTecla(tecla) { teclas[tecla] = true; initAudio(); }
+        function activarTecla(tecla) { 
+            teclas[tecla] = true; 
+            initAudio();
+            vibrarBoton(); // ← VIBRACIÓN AL PULSAR CUALQUIER BOTÓN
+        }
         function desactivarTecla(tecla) { teclas[tecla] = false; }
 
         document.querySelectorAll('.boton-tactil').forEach(btn => {
@@ -879,7 +829,8 @@
                     let dañoFinal = daño;
                     if (estadoRival === 'defensa') {
                         dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXRival, 'BLOQ'); sonidoBloqueo();
+                        mostrarEfectoGolpe(posXRival, 'BLOQ'); 
+                        sonidoBloqueo();
                     } else {
                         estadoRival = 'golpeado';
                         mostrarEfectoGolpe(posXRival, tipo);
@@ -906,7 +857,8 @@
                     let dañoFinal = daño;
                     if (estaDefendiendo) {
                         dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXJugador, 'BLOQ'); sonidoBloqueo();
+                        mostrarEfectoGolpe(posXJugador, 'BLOQ'); 
+                        sonidoBloqueo();
                     } else {
                         estadoJugador = 'golpeado';
                         mostrarEfectoGolpe(posXJugador, tipo);
