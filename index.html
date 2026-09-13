@@ -18,14 +18,22 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Contenedor que se escala proporcionalmente */
+        #consola-wrapper {
+            position: relative;
+            width: 572px;
+            height: 1024px;
+            transform-origin: center center;
         }
 
         #consola {
             position: relative;
             width: 572px;
             height: 1024px;
-            max-width: 100vw;
-            max-height: 100vh;
         }
 
         #consola-bg {
@@ -37,16 +45,17 @@
             z-index: 1;
         }
 
-        /* Área de la pantalla del juego - 525x408 */
+        /* Área de la pantalla del juego - 525x408, centrada */
         #pantalla-juego {
             position: absolute;
-            top: 60px;
-            left: 23px;
+            top: 58px;
+            left: 24px;
             width: 525px;
             height: 408px;
             z-index: 2;
             overflow: hidden;
             background: #000;
+            border: 2px solid #333;
         }
 
         #juego {
@@ -338,7 +347,7 @@
             text-align: center;
         }
 
-        /* BOTONES TÁCTILES SUPERPUESTOS */
+        /* BOTONES TÁCTILES - Posiciones basadas en la imagen 572x1024 */
         .boton-tactil {
             position: absolute;
             z-index: 1000;
@@ -347,189 +356,198 @@
         }
 
         .boton-tactil:active {
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
-        /* Cruceta */
+        /* Cruceta - centrada en la parte izquierda inferior */
         #btn-up {
-            top: 640px;
-            left: 120px;
-            width: 60px;
-            height: 60px;
+            top: 635px;
+            left: 115px;
+            width: 70px;
+            height: 70px;
         }
 
         #btn-down {
-            top: 760px;
-            left: 120px;
-            width: 60px;
-            height: 60px;
+            top: 755px;
+            left: 115px;
+            width: 70px;
+            height: 70px;
         }
 
         #btn-left {
-            top: 700px;
-            left: 60px;
-            width: 60px;
-            height: 60px;
+            top: 695px;
+            left: 55px;
+            width: 70px;
+            height: 70px;
         }
 
         #btn-right {
-            top: 700px;
-            left: 180px;
-            width: 60px;
-            height: 60px;
-        }
-
-        /* Botones de acción */
-        #btn-x {
-            top: 600px;
-            left: 400px;
+            top: 695px;
+            left: 175px;
             width: 70px;
             height: 70px;
+        }
+
+        /* Botones de acción - diamante en la parte derecha */
+        #btn-x {
+            top: 600px;
+            left: 395px;
+            width: 75px;
+            height: 75px;
         }
 
         #btn-y {
-            top: 700px;
-            left: 320px;
-            width: 70px;
-            height: 70px;
+            top: 695px;
+            left: 315px;
+            width: 75px;
+            height: 75px;
         }
 
         #btn-a {
-            top: 700px;
-            left: 470px;
-            width: 70px;
-            height: 70px;
+            top: 695px;
+            left: 475px;
+            width: 75px;
+            height: 75px;
         }
 
         #btn-b {
-            top: 780px;
-            left: 400px;
-            width: 70px;
-            height: 70px;
+            top: 775px;
+            left: 395px;
+            width: 75px;
+            height: 75px;
         }
 
         /* Select y Start */
         #btn-select {
             top: 890px;
-            left: 220px;
-            width: 80px;
-            height: 40px;
+            left: 215px;
+            width: 85px;
+            height: 45px;
         }
 
         #btn-start {
             top: 890px;
-            left: 320px;
-            width: 80px;
-            height: 40px;
+            left: 315px;
+            width: 85px;
+            height: 45px;
         }
 
         .boton-tactil.activo {
             background: rgba(255, 255, 0, 0.3);
             border-radius: 50%;
         }
-
-        @media (max-height: 900px) {
-            #consola {
-                transform: scale(0.85);
-                transform-origin: center center;
-            }
-        }
-
-        @media (max-height: 700px) {
-            #consola {
-                transform: scale(0.7);
-                transform-origin: center center;
-            }
-        }
     </style>
 </head>
 <body>
 
-    <div id="consola">
-        <img id="consola-bg" src="chony-gameboy.png" alt="CHONY GAMEBOY">
+    <div id="consola-wrapper">
+        <div id="consola">
+            <img id="consola-bg" src="chony-gameboy.png" alt="CHONY GAMEBOY">
 
-        <div id="pantalla-juego">
-            <div id="juego">
-                <div id="hud" class="oculto">
-                    <div class="barra-vida-container">
-                        <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
-                        <div class="nombre-luchador" id="nombre-jugador">JUGADOR</div>
-                    </div>
-                    <div id="timer-container">
-                        <div id="timer">60</div>
-                        <div id="round-info">Round 1/3</div>
-                        <div id="marcador">
-                            <div class="victoria-dot" id="v-j1"></div>
-                            <div class="victoria-dot" id="v-j2"></div>
-                            <div class="victoria-dot" id="v-j3"></div>
+            <div id="pantalla-juego">
+                <div id="juego">
+                    <div id="hud" class="oculto">
+                        <div class="barra-vida-container">
+                            <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
+                            <div class="nombre-luchador" id="nombre-jugador">JUGADOR</div>
+                        </div>
+                        <div id="timer-container">
+                            <div id="timer">60</div>
+                            <div id="round-info">Round 1/3</div>
+                            <div id="marcador">
+                                <div class="victoria-dot" id="v-j1"></div>
+                                <div class="victoria-dot" id="v-j2"></div>
+                                <div class="victoria-dot" id="v-j3"></div>
+                            </div>
+                        </div>
+                        <div class="barra-vida-container">
+                            <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
+                            <div class="nombre-luchador" id="nombre-rival">RIVAL</div>
                         </div>
                     </div>
-                    <div class="barra-vida-container">
-                        <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
-                        <div class="nombre-luchador" id="nombre-rival">RIVAL</div>
+
+                    <div id="fondo"></div>
+
+                    <div id="jugador" class="luchador oculto"><canvas></canvas></div>
+                    <div id="rival" class="luchador oculto"><canvas></canvas></div>
+
+                    <div id="controles-info" class="oculto">
+                        Cruceta: Mover | A: Puñetazo | B: Patada | X: Especial | Y: Defensa
                     </div>
-                </div>
 
-                <div id="fondo"></div>
+                    <div id="pantalla-round">
+                        <h2 id="round-titulo">¡ROUND 2!</h2>
+                        <p id="round-mensaje">Prepárate</p>
+                        <button class="btn-juego" onclick="siguienteRound()">CONTINUAR</button>
+                    </div>
 
-                <div id="jugador" class="luchador oculto"><canvas></canvas></div>
-                <div id="rival" class="luchador oculto"><canvas></canvas></div>
-
-                <div id="controles-info" class="oculto">
-                    Cruceta: Mover | A: Puñetazo | B: Patada | X: Especial | Y: Defensa
-                </div>
-
-                <div id="pantalla-round">
-                    <h2 id="round-titulo">¡ROUND 2!</h2>
-                    <p id="round-mensaje">Prepárate</p>
-                    <button class="btn-juego" onclick="siguienteRound()">CONTINUAR</button>
-                </div>
-
-                <div id="pantalla-inicio" class="pantalla">
-                    <h1>CHONY GAMEBOY<br>STREET FIGHTER</h1>
-                    <h2>ELIGE TU LUCHADOR</h2>
-                    
-                    <div class="selector-personajes">
-                        <div class="personaje-opcion" onclick="seleccionarPersonaje(1)">
-                            <img src="001.png" alt="Personaje 1">
-                            <h3>Abuela Tech</h3>
-                            <div class="stats">Vida: ★★★<br>Vel: ★★<br>Daño: ★★</div>
-                        </div>
-                        <div class="personaje-opcion" onclick="seleccionarPersonaje(2)">
-                            <img src="002.png" alt="Personaje 2">
-                            <h3>Niña Punk</h3>
-                            <div class="stats">Vida: ★★<br>Vel: ★★★<br>Daño: ★★★</div>
-                        </div>
-                        <div class="personaje-opcion" onclick="seleccionarPersonaje(3)">
-                            <img src="003.png" alt="Personaje 3">
-                            <h3>Abuela Cool</h3>
-                            <div class="stats">Vida: ★★★★<br>Vel: ★<br>Daño: ★★★</div>
+                    <div id="pantalla-inicio" class="pantalla">
+                        <h1>CHONY GAMEBOY<br>STREET FIGHTER</h1>
+                        <h2>ELIGE TU LUCHADOR</h2>
+                        
+                        <div class="selector-personajes">
+                            <div class="personaje-opcion" onclick="seleccionarPersonaje(1)">
+                                <img src="001.png" alt="Personaje 1">
+                                <h3>Abuela Tech</h3>
+                                <div class="stats">Vida: ★★★<br>Vel: ★★<br>Daño: ★★</div>
+                            </div>
+                            <div class="personaje-opcion" onclick="seleccionarPersonaje(2)">
+                                <img src="002.png" alt="Personaje 2">
+                                <h3>Niña Punk</h3>
+                                <div class="stats">Vida: ★★<br>Vel: ★★★<br>Daño: ★★★</div>
+                            </div>
+                            <div class="personaje-opcion" onclick="seleccionarPersonaje(3)">
+                                <img src="003.png" alt="Personaje 3">
+                                <h3>Abuela Cool</h3>
+                                <div class="stats">Vida: ★★★★<br>Vel: ★<br>Daño: ★★★</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div id="pantalla-final" class="pantalla oculto">
-                    <h1 id="resultado-final-titulo">¡GANASTE!</h1>
-                    <div id="resultado-final"></div>
-                    <button class="btn-juego" onclick="location.reload()">JUGAR OTRA VEZ</button>
+                    <div id="pantalla-final" class="pantalla oculto">
+                        <h1 id="resultado-final-titulo">¡GANASTE!</h1>
+                        <div id="resultado-final"></div>
+                        <button class="btn-juego" onclick="location.reload()">JUGAR OTRA VEZ</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- BOTONES TÁCTILES -->
-        <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
-        <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
-        <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
-        <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
-        <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
-        <div id="btn-b" class="boton-tactil" data-tecla="x"></div>
-        <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
-        <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
-        <div id="btn-select" class="boton-tactil" data-tecla="select"></div>
-        <div id="btn-start" class="boton-tactil" data-tecla="start"></div>
+            <!-- BOTONES TÁCTILES -->
+            <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
+            <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
+            <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
+            <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
+            <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
+            <div id="btn-b" class="boton-tactil" data-tecla="x"></div>
+            <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
+            <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
+            <div id="btn-select" class="boton-tactil" data-tecla="select"></div>
+            <div id="btn-start" class="boton-tactil" data-tecla="start"></div>
+        </div>
     </div>
 
     <script>
+        // ============================================================
+        // ESCALA AUTOMÁTICA PARA MÓVIL
+        // ============================================================
+        function escalarConsola() {
+            const wrapper = document.getElementById('consola-wrapper');
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const consolaWidth = 572;
+            const consolaHeight = 1024;
+            
+            const scaleX = windowWidth / consolaWidth;
+            const scaleY = windowHeight / consolaHeight;
+            const scale = Math.min(scaleX, scaleY, 1); // No escalar más de 1
+            
+            wrapper.style.transform = `scale(${scale})`;
+        }
+
+        window.addEventListener('resize', escalarConsola);
+        window.addEventListener('load', escalarConsola);
+        escalarConsola();
+
         // ============================================================
         // SISTEMA DE AUDIO
         // ============================================================
