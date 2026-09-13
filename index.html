@@ -22,7 +22,6 @@
             height: 100vh;
         }
 
-        /* Contenedor que se escala proporcionalmente */
         #consola-wrapper {
             position: relative;
             width: 572px;
@@ -45,7 +44,6 @@
             z-index: 1;
         }
 
-        /* Área de la pantalla del juego - 525x408, centrada */
         #pantalla-juego {
             position: absolute;
             top: 58px;
@@ -347,19 +345,40 @@
             text-align: center;
         }
 
-        /* BOTONES TÁCTILES - Posiciones basadas en la imagen 572x1024 */
+        /* BOTONES TÁCTILES VISIBLES PARA AJUSTAR */
         .boton-tactil {
             position: absolute;
             z-index: 1000;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            background: rgba(255, 0, 0, 0.4);
+            border: 2px solid #ff0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px #000;
         }
 
         .boton-tactil:active {
-            opacity: 0.5;
+            background: rgba(0, 255, 0, 0.6);
         }
 
-        /* Cruceta - centrada en la parte izquierda inferior */
+        #btn-up::after { content: '▲'; }
+        #btn-down::after { content: '▼'; }
+        #btn-left::after { content: '◄'; }
+        #btn-right::after { content: '►'; }
+        #btn-x::after { content: 'X'; font-size: 20px; }
+        #btn-y::after { content: 'Y'; font-size: 20px; }
+        #btn-a::after { content: 'A'; font-size: 20px; }
+        #btn-b::after { content: 'B'; font-size: 20px; }
+        #btn-select::after { content: 'SEL'; font-size: 12px; }
+        #btn-start::after { content: 'STA'; font-size: 12px; }
+
+        /* Cruceta */
         #btn-up {
             top: 635px;
             left: 115px;
@@ -388,7 +407,7 @@
             height: 70px;
         }
 
-        /* Botones de acción - diamante en la parte derecha */
+        /* Botones de acción */
         #btn-x {
             top: 600px;
             left: 395px;
@@ -433,8 +452,7 @@
         }
 
         .boton-tactil.activo {
-            background: rgba(255, 255, 0, 0.3);
-            border-radius: 50%;
+            background: rgba(0, 255, 0, 0.5);
         }
     </style>
 </head>
@@ -512,7 +530,7 @@
                 </div>
             </div>
 
-            <!-- BOTONES TÁCTILES -->
+            <!-- BOTONES TÁCTILES VISIBLES -->
             <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
             <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
@@ -539,7 +557,7 @@
             
             const scaleX = windowWidth / consolaWidth;
             const scaleY = windowHeight / consolaHeight;
-            const scale = Math.min(scaleX, scaleY, 1); // No escalar más de 1
+            const scale = Math.min(scaleX, scaleY, 1);
             
             wrapper.style.transform = `scale(${scale})`;
         }
