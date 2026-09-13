@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CHONY GAMEBOY - Street Fighter</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial Black', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #consola {
+            position: relative;
+            width: 572px;
+            height: 1024px;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+
+        #consola-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Área de la pantalla del juego - 525x408 */
+        #pantalla-juego {
+            position: absolute;
+            top: 60px;
+            left: 23px;
+            width: 525px;
+            height: 408px;
+            z-index: 2;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #juego {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow: hidden;
+        }
+
+        #fondo {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, #533483, #2b1055);
+            border-top: 3px solid #e94560;
+        }
+
+        #hud {
+            position: absolute;
+            top: 5px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 100;
+        }
+
+        .barra-vida-container {
+            width: 35%;
+            height: 20px;
+            background: #333;
+            border: 2px solid #fff;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .barra-vida {
+            height: 100%;
+            background: linear-gradient(to bottom, #ff0, #f00);
+            transition: width 0.3s;
+        }
+
+        .nombre-luchador {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 1px 1px #000;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        #timer-container { text-align: center; }
+
+        #timer {
+            width: 50px;
+            height: 30px;
+            background: #000;
+            border: 2px solid #fff;
+            color: #ff0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+
+        #round-info {
+            color: #0f0;
+            font-size: 10px;
+            margin-top: 2px;
+            text-shadow: 1px 1px #000;
+        }
+
+        #marcador {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 3px;
+        }
+
+        .victoria-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #666;
+        }
+
+        .victoria-dot.ganada {
+            background: #0f0;
+            border-color: #0f0;
+            box-shadow: 0 0 5px #0f0;
+        }
+
+        .luchador {
+            position: absolute;
+            bottom: 30%;
+            width: 80px;
+            height: 120px;
+            z-index: 50;
+        }
+
+        .luchador canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .efecto-golpe {
+            position: absolute;
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff0;
+            text-shadow: 2px 2px #f00;
+            animation: golpeAnim 0.5s forwards;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        @keyframes golpeAnim {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); }
+            100% { transform: scale(2) rotate(360deg); opacity: 0; }
+        }
+
+        .pantalla {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .pantalla h1 {
+            font-size: 24px;
+            color: #ff0;
+            text-shadow: 2px 2px #f00;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .pantalla h2 {
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .selector-personajes {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .personaje-opcion {
+            cursor: pointer;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .personaje-opcion:hover, .personaje-opcion:active {
+            border-color: #ff0;
+            background: rgba(255,255,0,0.2);
+        }
+
+        .personaje-opcion img {
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .personaje-opcion h3 {
+            color: #fff;
+            font-size: 10px;
+            margin: 5px 0;
+        }
+
+        .stats {
+            color: #aaa;
+            font-size: 8px;
+            line-height: 1.3;
+        }
+
+        .stats span { color: #0f0; }
+
+        .btn-juego {
+            padding: 8px 20px;
+            font-size: 14px;
+            background: #ff0;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Arial Black', sans-serif;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-juego:hover, .btn-juego:active {
+            background: #fff;
+        }
+
+        .oculto { display: none !important; }
+
+        #controles-info {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 8px;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 3px 10px;
+            border-radius: 3px;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        #anuncio {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36px;
+            color: #ff0;
+            text-shadow: 3px 3px #f00;
+            z-index: 500;
+            animation: anuncioAnim 2s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes anuncioAnim {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        #pantalla-round {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+        }
+
+        #pantalla-round.visible { display: flex; }
+
+        #pantalla-round h2 {
+            font-size: 28px;
+            color: #ff0;
+            text-shadow: 2px 2px #f00;
+            margin-bottom: 10px;
+        }
+
+        #pantalla-round p {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 15px;
+            text-align: center;
+            white-space: pre-line;
+        }
+
+        #pantalla-final h1 { font-size: 32px; }
+
+        #resultado-final {
+            font-size: 16px;
+            color: #fff;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        /* BOTONES TÁCTILES SUPERPUESTOS */
+        .boton-tactil {
+            position: absolute;
+            z-index: 1000;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .boton-tactil:active {
+            opacity: 0.6;
+        }
+
+        /* Cruceta */
+        #btn-up {
+            top: 640px;
+            left: 120px;
+            width: 60px;
+            height: 60px;
+        }
+
+        #btn-down {
+            top: 760px;
+            left: 120px;
+            width: 60px;
+            height: 60px;
+        }
+
+        #btn-left {
+            top: 700px;
+            left: 60px;
+            width: 60px;
+            height: 60px;
+        }
+
+        #btn-right {
+            top: 700px;
+            left: 180px;
+            width: 60px;
+            height: 60px;
+        }
+
+        /* Botones de acción */
+        #btn-x {
+            top: 600px;
+            left: 400px;
+            width: 70px;
+            height: 70px;
+        }
+
+        #btn-y {
+            top: 700px;
+            left: 320px;
+            width: 70px;
+            height: 70px;
+        }
+
+        #btn-a {
+            top: 700px;
+            left: 470px;
+            width: 70px;
+            height: 70px;
+        }
+
+        #btn-b {
+            top: 780px;
+            left: 400px;
+            width: 70px;
+            height: 70px;
+        }
+
+        /* Select y Start */
+        #btn-select {
+            top: 890px;
+            left: 220px;
+            width: 80px;
+            height: 40px;
+        }
+
+        #btn-start {
+            top: 890px;
+            left: 320px;
+            width: 80px;
+            height: 40px;
+        }
+
+        .boton-tactil.activo {
+            background: rgba(255, 255, 0, 0.3);
+            border-radius: 50%;
+        }
+
+        @media (max-height: 900px) {
+            #consola {
+                transform: scale(0.85);
+                transform-origin: center center;
+            }
+        }
+
+        @media (max-height: 700px) {
+            #consola {
+                transform: scale(0.7);
+                transform-origin: center center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="consola">
+        <img id="consola-bg" src="chony-gameboy.png" alt="CHONY GAMEBOY">
+
+        <div id="pantalla-juego">
+            <div id="juego">
+                <div id="hud" class="oculto">
+                    <div class="barra-vida-container">
+                        <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
+                        <div class="nombre-luchador" id="nombre-jugador">JUGADOR</div>
+                    </div>
+                    <div id="timer-container">
+                        <div id="timer">60</div>
+                        <div id="round-info">Round 1/3</div>
+                        <div id="marcador">
+                            <div class="victoria-dot" id="v-j1"></div>
+                            <div class="victoria-dot" id="v-j2"></div>
+                            <div class="victoria-dot" id="v-j3"></div>
+                        </div>
+                    </div>
+                    <div class="barra-vida-container">
+                        <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
+                        <div class="nombre-luchador" id="nombre-rival">RIVAL</div>
+                    </div>
+                </div>
+
+                <div id="fondo"></div>
+
+                <div id="jugador" class="luchador oculto"><canvas></canvas></div>
+                <div id="rival" class="luchador oculto"><canvas></canvas></div>
+
+                <div id="controles-info" class="oculto">
+                    Cruceta: Mover | A: Puñetazo | B: Patada | X: Especial | Y: Defensa
+                </div>
+
+                <div id="pantalla-round">
+                    <h2 id="round-titulo">¡ROUND 2!</h2>
+                    <p id="round-mensaje">Prepárate</p>
+                    <button class="btn-juego" onclick="siguienteRound()">CONTINUAR</button>
+                </div>
+
+                <div id="pantalla-inicio" class="pantalla">
+                    <h1>CHONY GAMEBOY<br>STREET FIGHTER</h1>
+                    <h2>ELIGE TU LUCHADOR</h2>
+                    
+                    <div class="selector-personajes">
+                        <div class="personaje-opcion" onclick="seleccionarPersonaje(1)">
+                            <img src="001.png" alt="Personaje 1">
+                            <h3>Abuela Tech</h3>
+                            <div class="stats">Vida: ★★★<br>Vel: ★★<br>Daño: ★★</div>
+                        </div>
+                        <div class="personaje-opcion" onclick="seleccionarPersonaje(2)">
+                            <img src="002.png" alt="Personaje 2">
+                            <h3>Niña Punk</h3>
+                            <div class="stats">Vida: ★★<br>Vel: ★★★<br>Daño: ★★★</div>
+                        </div>
+                        <div class="personaje-opcion" onclick="seleccionarPersonaje(3)">
+                            <img src="003.png" alt="Personaje 3">
+                            <h3>Abuela Cool</h3>
+                            <div class="stats">Vida: ★★★★<br>Vel: ★<br>Daño: ★★★</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pantalla-final" class="pantalla oculto">
+                    <h1 id="resultado-final-titulo">¡GANASTE!</h1>
+                    <div id="resultado-final"></div>
+                    <button class="btn-juego" onclick="location.reload()">JUGAR OTRA VEZ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTONES TÁCTILES -->
+        <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
+        <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
+        <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
+        <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
+        <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
+        <div id="btn-b" class="boton-tactil" data-tecla="x"></div>
+        <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
+        <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
+        <div id="btn-select" class="boton-tactil" data-tecla="select"></div>
+        <div id="btn-start" class="boton-tactil" data-tecla="start"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        // SISTEMA DE AUDIO
+        // ============================================================
+        let audioCtx = null;
+        let sonidoActivado = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function sonidoGolpe(tipo) {
+            if (!sonidoActivado || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (tipo === 'puñetazo') {
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (tipo === 'patada') {
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (tipo === 'especial') {
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        function sonidoBloqueo() {
+            if (!sonidoActivado || !audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+            osc.type = 'square';
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        }
+
+        function sonidoKO() {
+            if (!sonidoActivado || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(200, now);
+            osc1.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            gain1.gain.setValueAtTime(0.4, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc1.start(now);
+            osc1.stop(now + 0.5);
+            
+            const bufferSize = audioCtx.sampleRate * 0.3;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseGain = audioCtx.createGain();
+            noise.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            noiseGain.gain.setValueAtTime(0.3, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            noise.start(now);
+        }
+
+        function sonidoRoundStart() {
+            if (!sonidoActivado || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, now);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc.start(now);
+            osc.stop(now + 0.5);
+            
+            setTimeout(() => {
+                if (!sonidoActivado || !audioCtx) return;
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1100, audioCtx.currentTime);
+                gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc2.start(audioCtx.currentTime);
+                osc2.stop(audioCtx.currentTime + 0.5);
+            }, 200);
+        }
+
+        function sonidoVictoria() {
+            if (!sonidoActivado || !audioCtx) return;
+            const notas = [523, 659, 784, 1047];
+            notas.forEach((freq, i) => {
+                setTimeout(() => {
+                    if (!sonidoActivado || !audioCtx) return;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }, i * 150);
+            });
+        }
+
+        function sonidoDerrota() {
+            if (!sonidoActivado || !audioCtx) return;
+            const notas = [400, 350, 300, 200];
+            notas.forEach((freq, i) => {
+                setTimeout(() => {
+                    if (!sonidoActivado || !audioCtx) return;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.4);
+                }, i * 200);
+            });
+        }
+
+        // ============================================================
+        // CONTROLES TÁCTILES
+        // ============================================================
+        const teclas = {};
+
+        function activarTecla(tecla) {
+            teclas[tecla] = true;
+            initAudio();
+        }
+
+        function desactivarTecla(tecla) {
+            teclas[tecla] = false;
+        }
+
+        document.querySelectorAll('.boton-tactil').forEach(btn => {
+            const tecla = btn.dataset.tecla;
+            
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                activarTecla(tecla);
+                btn.classList.add('activo');
+            });
+            
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                desactivarTecla(tecla);
+                btn.classList.remove('activo');
+            });
+            
+            btn.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                desactivarTecla(tecla);
+                btn.classList.remove('activo');
+            });
+            
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                activarTecla(tecla);
+                btn.classList.add('activo');
+            });
+            
+            btn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                desactivarTecla(tecla);
+                btn.classList.remove('activo');
+            });
+            
+            btn.addEventListener('mouseleave', (e) => {
+                desactivarTecla(tecla);
+                btn.classList.remove('activo');
+            });
+        });
+
+        document.addEventListener('keydown', (e) => { 
+            teclas[e.key.toLowerCase()] = true; 
+            e.preventDefault();
+            initAudio();
+        });
+        document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
+
+        // ============================================================
+        // CONFIGURACIÓN DE PERSONAJES
+        // ============================================================
+        const PERSONAJES = {
+            1: { nombre: 'Abuela Tech', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
+            2: { nombre: 'Niña Punk', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
+            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 18 }
+        };
+
+        let FRAME_WIDTH = 0;
+        let FRAME_HEIGHT = 0;
+        const COLS = 5;
+        const ROWS = 2;
+
+        const ANIMACIONES = {
+            idle: [0, 0],
+            caminar1: [0, 1],
+            caminar2: [0, 2],
+            saltando: [0, 3],
+            puñetazo: [0, 4],
+            patada: [1, 0],
+            especial: [1, 1],
+            golpeado: [1, 2],
+            derrotado: [1, 3],
+            defensa: [1, 4]
+        };
+
+        let spriteSheets = {};
+        let jugadorConfig, rivalConfig;
+        let jugadorNum, rivalNum;
+        let vidaJugador, vidaRival;
+        let posXJugador, posXRival;
+        let tiempo = 60;
+        let juegoActivo = false;
+        let cooldownAtaque = false;
+        let estadoJugador = 'idle';
+        let estadoRival = 'idle';
+        let animTimer = 0;
+        let animTimerRival = 0;
+        let estaSaltando = false;
+        let estaDefendiendo = false;
+
+        let roundActual = 1;
+        const TOTAL_ROUNDS = 3;
+        let victoriasJugador = 0;
+        let victoriasRival = 0;
+        let rivalesDisponibles = [];
+        let indiceRivalActual = 0;
+
+        function cargarSpriteSheets() {
+            return Promise.all([
+                new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = 'spritesheet.png';
+                    img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); };
+                    img.onerror = reject;
+                }),
+                new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = 'spritesheet2.png';
+                    img.onload = () => { spriteSheets[2] = img; resolve(); };
+                    img.onerror = reject;
+                }),
+                new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = 'spritesheet3.png';
+                    img.onload = () => { spriteSheets[3] = img; resolve(); };
+                    img.onerror = reject;
+                })
+            ]);
+        }
+
+        function dibujarFrame(canvas, spriteSheet, fila, columna, voltear) {
+            if (!spriteSheet) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = FRAME_WIDTH;
+            canvas.height = FRAME_HEIGHT;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if (voltear) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+            ctx.drawImage(spriteSheet, columna * FRAME_WIDTH, fila * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
+
+        function dibujarDerrotado(quien) {
+            const canvas = document.querySelector('#' + quien + ' canvas');
+            const num = quien === 'jugador' ? jugadorNum : rivalNum;
+            const frame = ANIMACIONES['derrotado'];
+            const voltear = quien === 'jugador' ? (posXRival <= posXJugador) : (posXJugador <= posXRival);
+            dibujarFrame(canvas, spriteSheets[num], frame[0], frame[1], voltear);
+        }
+
+        function seleccionarPersonaje(num) {
+            initAudio();
+            jugadorNum = num;
+            rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
+            rivalesDisponibles.sort(() => Math.random() - 0.5);
+            indiceRivalActual = 0;
+            jugadorConfig = PERSONAJES[jugadorNum];
+            rivalNum = rivalesDisponibles[0];
+            rivalConfig = PERSONAJES[rivalNum];
+            roundActual = 1;
+            victoriasJugador = 0;
+            victoriasRival = 0;
+            iniciarRound();
+        }
+
+        function iniciarRound() {
+            document.getElementById('pantalla-inicio').classList.add('oculto');
+            document.getElementById('pantalla-final').classList.add('oculto');
+            document.getElementById('hud').classList.remove('oculto');
+            document.getElementById('controles-info').classList.remove('oculto');
+            
+            document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
+            document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
+            document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + TOTAL_ROUNDS;
+            actualizarMarcador();
+            
+            const jugadorEl = document.getElementById('jugador');
+            const rivalEl = document.getElementById('rival');
+            
+            jugadorEl.classList.remove('oculto');
+            rivalEl.classList.remove('oculto');
+            
+            posXJugador = 50;
+            posXRival = 380;
+            jugadorEl.style.left = posXJugador + 'px';
+            rivalEl.style.left = posXRival + 'px';
+            
+            vidaJugador = jugadorConfig.vida;
+            vidaRival = rivalConfig.vida;
+            
+            actualizarBarrasVida();
+            mostrarAnuncio('¡ROUND ' + roundActual + '!');
+            sonidoRoundStart();
+            
+            juegoActivo = true;
+            tiempo = 60;
+            document.getElementById('timer').innerText = tiempo;
+            
+            const timerInterval = setInterval(() => {
+                if (!juegoActivo) { clearInterval(timerInterval); return; }
+                tiempo--;
+                document.getElementById('timer').innerText = tiempo;
+                if (tiempo <= 0) {
+                    if (vidaJugador > vidaRival) ganarRound();
+                    else if (vidaRival > vidaJugador) perderRound();
+                    else ganarRound();
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+            
+            bucleJuego();
+        }
+
+        function bucleJuego() {
+            if (!juegoActivo) return;
+            
+            const jugadorCanvas = document.querySelector('#jugador canvas');
+            const rivalCanvas = document.querySelector('#rival canvas');
+            let moviendose = false;
+            
+            if (teclas['v'] && estadoJugador === 'idle') { estaDefendiendo = true; estadoJugador = 'defensa'; }
+            else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
+            
+            if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
+                if (teclas['arrowleft'] && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
+                if (teclas['arrowright'] && posXJugador < 450) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
+                
+                if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
+                    estaSaltando = true;
+                    estadoJugador = 'saltando';
+                    const jugadorEl = document.getElementById('jugador');
+                    jugadorEl.style.bottom = 'calc(30% + 50px)';
+                    setTimeout(() => { jugadorEl.style.bottom = '30%'; }, 300);
+                    setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
+                }
+                
+                if (moviendose && estadoJugador === 'idle') {
+                    animTimer++;
+                    if (animTimer < 15) estadoJugador = 'caminar1';
+                    else if (animTimer < 30) estadoJugador = 'caminar2';
+                    else animTimer = 0;
+                } else if (!moviendose && (estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
+                    estadoJugador = 'idle';
+                    animTimer = 0;
+                }
+            }
+            
+            document.getElementById('jugador').style.left = posXJugador + 'px';
+            const mirarDerechaJugador = posXRival > posXJugador;
+            const frameJugador = ANIMACIONES[estadoJugador];
+            dibujarFrame(jugadorCanvas, spriteSheets[jugadorNum], frameJugador[0], frameJugador[1], !mirarDerechaJugador);
+            
+            if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' &&
+                (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
+                if (teclas['z']) atacar('puñetazo', jugadorConfig.daño, 300);
+                else if (teclas['x']) atacar('patada', jugadorConfig.daño * 1.5, 400);
+                else if (teclas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
+            }
+            
+            let moviendoseRival = false;
+            if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
+                estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
+                if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * 0.6; moviendoseRival = true; }
+                else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * 0.6; moviendoseRival = true; }
+                
+                if (moviendoseRival) {
+                    animTimerRival++;
+                    if (animTimerRival < 15) estadoRival = 'caminar1';
+                    else if (animTimerRival < 30) estadoRival = 'caminar2';
+                    else animTimerRival = 0;
+                } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
+                    estadoRival = 'idle';
+                    animTimerRival = 0;
+                }
+                
+                if (Math.random() < 0.005 && Math.abs(posXRival - posXJugador) < 150) {
+                    estadoRival = 'defensa';
+                    setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 500);
+                }
+            }
+            
+            document.getElementById('rival').style.left = posXRival + 'px';
+            const mirarDerechaRival = posXJugador > posXRival;
+            const frameRival = ANIMACIONES[estadoRival];
+            dibujarFrame(rivalCanvas, spriteSheets[rivalNum], frameRival[0], frameRival[1], !mirarDerechaRival);
+            
+            if (Math.random() < 0.015 && Math.abs(posXRival - posXJugador) < 150 && 
+                estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
+                estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado') {
+                const ataques = ['puñetazo', 'patada', 'especial'];
+                const ataqueRival = ataques[Math.floor(Math.random() * ataques.length)];
+                const dañoRival = ataqueRival === 'puñetazo' ? rivalConfig.daño : 
+                                 ataqueRival === 'patada' ? rivalConfig.daño * 1.5 : rivalConfig.daño * 2.5;
+                const duracion = ataqueRival === 'puñetazo' ? 300 : ataqueRival === 'patada' ? 400 : 500;
+                atacarRival(ataqueRival, dañoRival, duracion);
+            }
+            
+            requestAnimationFrame(bucleJuego);
+        }
+
+        function atacar(tipo, daño, duracion) {
+            cooldownAtaque = true;
+            estadoJugador = tipo;
+            const distancia = Math.abs(posXRival - posXJugador);
+            
+            sonidoGolpe(tipo);
+            
+            if (distancia < 120) {
+                setTimeout(() => {
+                    let dañoFinal = daño;
+                    if (estadoRival === 'defensa') {
+                        dañoFinal = daño * 0.2;
+                        mostrarEfectoGolpe(posXRival, 'BLOQ');
+                        sonidoBloqueo();
+                    } else {
+                        estadoRival = 'golpeado';
+                        mostrarEfectoGolpe(posXRival, tipo);
+                    }
+                    vidaRival -= dañoFinal;
+                    actualizarBarrasVida();
+                    setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle'; }, 300);
+                    
+                    if (vidaRival <= 0) {
+                        estadoRival = 'derrotado';
+                        dibujarDerrotado('rival');
+                        sonidoKO();
+                        setTimeout(() => {
+                            ganarRound();
+                        }, 2000);
+                    }
+                }, 100);
+            }
+            setTimeout(() => {
+                cooldownAtaque = false;
+                if (vidaRival > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') estadoJugador = 'idle';
+            }, duracion);
+        }
+
+        function atacarRival(tipo, daño, duracion) {
+            estadoRival = tipo;
+            const distancia = Math.abs(posXRival - posXJugador);
+            
+            if (distancia < 120) {
+                setTimeout(() => {
+                    let dañoFinal = daño;
+                    if (estaDefendiendo) {
+                        dañoFinal = daño * 0.2;
+                        mostrarEfectoGolpe(posXJugador, 'BLOQ');
+                        sonidoBloqueo();
+                    } else {
+                        estadoJugador = 'golpeado';
+                        mostrarEfectoGolpe(posXJugador, tipo);
+                    }
+                    vidaJugador -= dañoFinal;
+                    actualizarBarrasVida();
+                    setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
+                    
+                    if (vidaJugador <= 0) {
+                        estadoJugador = 'derrotado';
+                        dibujarDerrotado('jugador');
+                        sonidoKO();
+                        setTimeout(() => {
+                            perderRound();
+                        }, 2000);
+                    }
+                }, 100);
+            }
+            setTimeout(() => {
+                if (vidaRival > 0 && estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') estadoRival = 'idle';
+            }, duracion);
+        }
+
+        function ganarRound() {
+            if (!juegoActivo) return;
+            juegoActivo = false;
+            victoriasJugador++;
+            actualizarMarcador();
+            sonidoVictoria();
+            setTimeout(() => {
+                if (victoriasJugador >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(true);
+                else mostrarPantallaRound(true);
+            }, 500);
+        }
+
+        function perderRound() {
+            if (!juegoActivo) return;
+            juegoActivo = false;
+            victoriasRival++;
+            actualizarMarcador();
+            sonidoDerrota();
+            setTimeout(() => {
+                if (victoriasRival >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(false);
+                else mostrarPantallaRound(false);
+            }, 500);
+        }
+
+        function mostrarPantallaRound(ganoJugador) {
+            roundActual++;
+            indiceRivalActual = (indiceRivalActual + 1) % rivalesDisponibles.length;
+            rivalNum = rivalesDisponibles[indiceRivalActual];
+            rivalConfig = PERSONAJES[rivalNum];
+            
+            const titulo = document.getElementById('round-titulo');
+            const mensaje = document.getElementById('round-mensaje');
+            titulo.innerText = '¡ROUND ' + roundActual + '!';
+            titulo.style.color = ganoJugador ? '#0f0' : '#f00';
+            mensaje.innerText = (ganoJugador ? '¡Ganaste el round anterior!\n' : 'Perdiste el round anterior.\n') + 
+                                'Siguiente rival: ' + rivalConfig.nombre;
+            document.getElementById('pantalla-round').classList.add('visible');
+        }
+
+        function siguienteRound() {
+            document.getElementById('pantalla-round').classList.remove('visible');
+            estadoJugador = 'idle';
+            estadoRival = 'idle';
+            estaSaltando = false;
+            estaDefendiendo = false;
+            cooldownAtaque = false;
+            iniciarRound();
+        }
+
+        function mostrarResultadoFinal(gano) {
+            document.getElementById('hud').classList.add('oculto');
+            document.getElementById('controles-info').classList.add('oculto');
+            document.getElementById('jugador').classList.add('oculto');
+            document.getElementById('rival').classList.add('oculto');
+            
+            const titulo = document.getElementById('resultado-final-titulo');
+            const resultado = document.getElementById('resultado-final');
+            if (gano) {
+                titulo.innerText = '¡CAMPEÓN!';
+                titulo.style.color = '#0f0';
+                resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Ganaste el combate!</p>' +
+                    '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
+                    '<p style="color: #ff0;">Derrotaste a todos tus rivales</p>';
+            } else {
+                titulo.innerText = '¡DERROTADO!';
+                titulo.style.color = '#f00';
+                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Perdiste el combate</p>' +
+                    '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
+                    '<p style="color: #ff0;">Inténtalo de nuevo</p>';
+            }
+            document.getElementById('pantalla-final').classList.remove('oculto');
+        }
+
+        function actualizarMarcador() {
+            for (let i = 1; i <= 3; i++) document.getElementById('v-j' + i).classList.remove('ganada');
+            for (let i = 1; i <= victoriasJugador; i++) document.getElementById('v-j' + i).classList.add('ganada');
+        }
+
+        function mostrarEfectoGolpe(x, tipo) {
+            const efecto = document.createElement('div');
+            efecto.className = 'efecto-golpe';
+            if (tipo === 'puñetazo') efecto.innerText = 'POW!';
+            else if (tipo === 'patada') efecto.innerText = 'BAM!';
+            else if (tipo === 'especial') efecto.innerText = 'BOOM!';
+            else efecto.innerText = 'BLOQ!';
+            efecto.style.left = x + 'px';
+            efecto.style.bottom = '40%';
+            document.getElementById('juego').appendChild(efecto);
+            setTimeout(() => efecto.remove(), 500);
+        }
+
+        function mostrarAnuncio(texto) {
+            const anuncio = document.createElement('div');
+            anuncio.id = 'anuncio';
+            anuncio.innerText = texto;
+            document.getElementById('juego').appendChild(anuncio);
+            setTimeout(() => anuncio.remove(), 2000);
+        }
+
+        function actualizarBarrasVida() {
+            document.getElementById('vida-jugador').style.width = Math.max(0, (vidaJugador / jugadorConfig.vida) * 100) + '%';
+            document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / rivalConfig.vida) * 100) + '%';
+        }
+
+        cargarSpriteSheets().then(() => console.log('Spritesheets cargados')).catch(() => console.error('Error cargando spritesheets'));
+    </script>
+</body>
+</html>
