@@ -9,7 +9,7 @@
 
         body {
             overflow: hidden;
-            background: #000;
+            background: #b7b5b8;
             font-family: 'Arial Black', sans-serif;
             user-select: none;
             -webkit-user-select: none;
@@ -378,74 +378,74 @@
         #btn-select::after { content: 'SEL'; font-size: 12px; }
         #btn-start::after { content: 'STA'; font-size: 12px; }
 
-        /* Cruceta */
+        /* Cruceta - AJUSTADA: subida 25px */
         #btn-up {
-            top: 635px;
+            top: 610px;
             left: 115px;
             width: 70px;
             height: 70px;
         }
 
         #btn-down {
-            top: 755px;
+            top: 730px;
             left: 115px;
             width: 70px;
             height: 70px;
         }
 
         #btn-left {
-            top: 695px;
+            top: 670px;
             left: 55px;
             width: 70px;
             height: 70px;
         }
 
         #btn-right {
-            top: 695px;
+            top: 670px;
             left: 175px;
             width: 70px;
             height: 70px;
         }
 
-        /* Botones de acción */
+        /* Botones de acción - AJUSTADOS: izquierda 35px, arriba 25px */
         #btn-x {
-            top: 600px;
-            left: 395px;
+            top: 575px;
+            left: 360px;
             width: 75px;
             height: 75px;
         }
 
         #btn-y {
-            top: 695px;
-            left: 315px;
+            top: 670px;
+            left: 280px;
             width: 75px;
             height: 75px;
         }
 
         #btn-a {
-            top: 695px;
-            left: 475px;
+            top: 670px;
+            left: 440px;
             width: 75px;
             height: 75px;
         }
 
         #btn-b {
-            top: 775px;
-            left: 395px;
+            top: 750px;
+            left: 360px;
             width: 75px;
             height: 75px;
         }
 
-        /* Select y Start */
+        /* Select y Start - AJUSTADOS: subidos 20px */
         #btn-select {
-            top: 890px;
+            top: 870px;
             left: 215px;
             width: 85px;
             height: 45px;
         }
 
         #btn-start {
-            top: 890px;
+            top: 870px;
             left: 315px;
             width: 85px;
             height: 45px;
@@ -545,20 +545,15 @@
     </div>
 
     <script>
-        // ============================================================
-        // ESCALA AUTOMÁTICA PARA MÓVIL
-        // ============================================================
         function escalarConsola() {
             const wrapper = document.getElementById('consola-wrapper');
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const consolaWidth = 572;
             const consolaHeight = 1024;
-            
             const scaleX = windowWidth / consolaWidth;
             const scaleY = windowHeight / consolaHeight;
             const scale = Math.min(scaleX, scaleY, 1);
-            
             wrapper.style.transform = `scale(${scale})`;
         }
 
@@ -566,16 +561,11 @@
         window.addEventListener('load', escalarConsola);
         escalarConsola();
 
-        // ============================================================
-        // SISTEMA DE AUDIO
-        // ============================================================
         let audioCtx = null;
         let sonidoActivado = true;
 
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function sonidoGolpe(tipo) {
@@ -585,28 +575,24 @@
             const now = audioCtx.currentTime;
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
             if (tipo === 'puñetazo') {
                 osc.frequency.setValueAtTime(150, now);
                 osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
                 gain.gain.setValueAtTime(0.3, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
             } else if (tipo === 'patada') {
                 osc.frequency.setValueAtTime(200, now);
                 osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
                 gain.gain.setValueAtTime(0.4, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
             } else if (tipo === 'especial') {
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
                 gain.gain.setValueAtTime(0.5, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
         }
 
@@ -616,14 +602,12 @@
             const gain = audioCtx.createGain();
             const now = audioCtx.currentTime;
             osc.type = 'square';
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            osc.connect(gain); gain.connect(audioCtx.destination);
             osc.frequency.setValueAtTime(800, now);
             osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
             gain.gain.setValueAtTime(0.2, now);
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-            osc.start(now);
-            osc.stop(now + 0.05);
+            osc.start(now); osc.stop(now + 0.05);
         }
 
         function sonidoKO() {
@@ -631,27 +615,21 @@
             const now = audioCtx.currentTime;
             const osc1 = audioCtx.createOscillator();
             const gain1 = audioCtx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(audioCtx.destination);
+            osc1.connect(gain1); gain1.connect(audioCtx.destination);
             osc1.type = 'sawtooth';
             osc1.frequency.setValueAtTime(200, now);
             osc1.frequency.exponentialRampToValueAtTime(50, now + 0.5);
             gain1.gain.setValueAtTime(0.4, now);
             gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc1.start(now);
-            osc1.stop(now + 0.5);
-            
+            osc1.start(now); osc1.stop(now + 0.5);
             const bufferSize = audioCtx.sampleRate * 0.3;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-            }
+            for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
             const noiseGain = audioCtx.createGain();
-            noise.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
+            noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
             noiseGain.gain.setValueAtTime(0.3, now);
             noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
             noise.start(now);
@@ -662,27 +640,22 @@
             const now = audioCtx.currentTime;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            osc.connect(gain); gain.connect(audioCtx.destination);
             osc.type = 'sine';
             osc.frequency.setValueAtTime(880, now);
             gain.gain.setValueAtTime(0.3, now);
             gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc.start(now);
-            osc.stop(now + 0.5);
-            
+            osc.start(now); osc.stop(now + 0.5);
             setTimeout(() => {
                 if (!sonidoActivado || !audioCtx) return;
                 const osc2 = audioCtx.createOscillator();
                 const gain2 = audioCtx.createGain();
-                osc2.connect(gain2);
-                gain2.connect(audioCtx.destination);
+                osc2.connect(gain2); gain2.connect(audioCtx.destination);
                 osc2.type = 'sine';
                 osc2.frequency.setValueAtTime(1100, audioCtx.currentTime);
                 gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc2.start(audioCtx.currentTime);
-                osc2.stop(audioCtx.currentTime + 0.5);
+                osc2.start(audioCtx.currentTime); osc2.stop(audioCtx.currentTime + 0.5);
             }, 200);
         }
 
@@ -694,14 +667,12 @@
                     if (!sonidoActivado || !audioCtx) return;
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                    osc.start(audioCtx.currentTime);
-                    osc.stop(audioCtx.currentTime + 0.3);
+                    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.3);
                 }, i * 150);
             });
         }
@@ -714,144 +685,73 @@
                     if (!sonidoActivado || !audioCtx) return;
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                    osc.start(audioCtx.currentTime);
-                    osc.stop(audioCtx.currentTime + 0.4);
+                    osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.4);
                 }, i * 200);
             });
         }
 
-        // ============================================================
-        // CONTROLES TÁCTILES
-        // ============================================================
         const teclas = {};
 
-        function activarTecla(tecla) {
-            teclas[tecla] = true;
-            initAudio();
-        }
-
-        function desactivarTecla(tecla) {
-            teclas[tecla] = false;
-        }
+        function activarTecla(tecla) { teclas[tecla] = true; initAudio(); }
+        function desactivarTecla(tecla) { teclas[tecla] = false; }
 
         document.querySelectorAll('.boton-tactil').forEach(btn => {
             const tecla = btn.dataset.tecla;
-            
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                activarTecla(tecla);
-                btn.classList.add('activo');
-            });
-            
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                desactivarTecla(tecla);
-                btn.classList.remove('activo');
-            });
-            
-            btn.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                desactivarTecla(tecla);
-                btn.classList.remove('activo');
-            });
-            
-            btn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                activarTecla(tecla);
-                btn.classList.add('activo');
-            });
-            
-            btn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                desactivarTecla(tecla);
-                btn.classList.remove('activo');
-            });
-            
-            btn.addEventListener('mouseleave', (e) => {
-                desactivarTecla(tecla);
-                btn.classList.remove('activo');
-            });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); activarTecla(tecla); btn.classList.add('activo'); });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
+            btn.addEventListener('touchcancel', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); activarTecla(tecla); btn.classList.add('activo'); });
+            btn.addEventListener('mouseup', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
+            btn.addEventListener('mouseleave', () => { desactivarTecla(tecla); btn.classList.remove('activo'); });
         });
 
-        document.addEventListener('keydown', (e) => { 
-            teclas[e.key.toLowerCase()] = true; 
-            e.preventDefault();
-            initAudio();
-        });
+        document.addEventListener('keydown', (e) => { teclas[e.key.toLowerCase()] = true; e.preventDefault(); initAudio(); });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
-        // ============================================================
-        // CONFIGURACIÓN DE PERSONAJES
-        // ============================================================
         const PERSONAJES = {
             1: { nombre: 'Abuela Tech', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
             2: { nombre: 'Niña Punk', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
             3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 18 }
         };
 
-        let FRAME_WIDTH = 0;
-        let FRAME_HEIGHT = 0;
-        const COLS = 5;
-        const ROWS = 2;
+        let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
+        const COLS = 5, ROWS = 2;
 
         const ANIMACIONES = {
-            idle: [0, 0],
-            caminar1: [0, 1],
-            caminar2: [0, 2],
-            saltando: [0, 3],
-            puñetazo: [0, 4],
-            patada: [1, 0],
-            especial: [1, 1],
-            golpeado: [1, 2],
-            derrotado: [1, 3],
-            defensa: [1, 4]
+            idle: [0, 0], caminar1: [0, 1], caminar2: [0, 2], saltando: [0, 3], puñetazo: [0, 4],
+            patada: [1, 0], especial: [1, 1], golpeado: [1, 2], derrotado: [1, 3], defensa: [1, 4]
         };
 
-        let spriteSheets = {};
-        let jugadorConfig, rivalConfig;
-        let jugadorNum, rivalNum;
-        let vidaJugador, vidaRival;
-        let posXJugador, posXRival;
-        let tiempo = 60;
-        let juegoActivo = false;
-        let cooldownAtaque = false;
-        let estadoJugador = 'idle';
-        let estadoRival = 'idle';
-        let animTimer = 0;
-        let animTimerRival = 0;
-        let estaSaltando = false;
-        let estaDefendiendo = false;
-
+        let spriteSheets = {}, jugadorConfig, rivalConfig, jugadorNum, rivalNum;
+        let vidaJugador, vidaRival, posXJugador, posXRival, tiempo = 60;
+        let juegoActivo = false, cooldownAtaque = false;
+        let estadoJugador = 'idle', estadoRival = 'idle';
+        let animTimer = 0, animTimerRival = 0;
+        let estaSaltando = false, estaDefendiendo = false;
         let roundActual = 1;
         const TOTAL_ROUNDS = 3;
-        let victoriasJugador = 0;
-        let victoriasRival = 0;
-        let rivalesDisponibles = [];
-        let indiceRivalActual = 0;
+        let victoriasJugador = 0, victoriasRival = 0;
+        let rivalesDisponibles = [], indiceRivalActual = 0;
 
         function cargarSpriteSheets() {
             return Promise.all([
                 new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.src = 'spritesheet.png';
+                    const img = new Image(); img.src = 'spritesheet.png';
                     img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); };
                     img.onerror = reject;
                 }),
                 new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.src = 'spritesheet2.png';
+                    const img = new Image(); img.src = 'spritesheet2.png';
                     img.onload = () => { spriteSheets[2] = img; resolve(); };
                     img.onerror = reject;
                 }),
                 new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.src = 'spritesheet3.png';
+                    const img = new Image(); img.src = 'spritesheet3.png';
                     img.onload = () => { spriteSheets[3] = img; resolve(); };
                     img.onerror = reject;
                 })
@@ -861,8 +761,7 @@
         function dibujarFrame(canvas, spriteSheet, fila, columna, voltear) {
             if (!spriteSheet) return;
             const ctx = canvas.getContext('2d');
-            canvas.width = FRAME_WIDTH;
-            canvas.height = FRAME_HEIGHT;
+            canvas.width = FRAME_WIDTH; canvas.height = FRAME_HEIGHT;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.save();
             if (voltear) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
@@ -887,9 +786,7 @@
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
             rivalConfig = PERSONAJES[rivalNum];
-            roundActual = 1;
-            victoriasJugador = 0;
-            victoriasRival = 0;
+            roundActual = 1; victoriasJugador = 0; victoriasRival = 0;
             iniciarRound();
         }
 
@@ -898,34 +795,21 @@
             document.getElementById('pantalla-final').classList.add('oculto');
             document.getElementById('hud').classList.remove('oculto');
             document.getElementById('controles-info').classList.remove('oculto');
-            
             document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
             document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
             document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + TOTAL_ROUNDS;
             actualizarMarcador();
-            
             const jugadorEl = document.getElementById('jugador');
             const rivalEl = document.getElementById('rival');
-            
-            jugadorEl.classList.remove('oculto');
-            rivalEl.classList.remove('oculto');
-            
-            posXJugador = 50;
-            posXRival = 380;
-            jugadorEl.style.left = posXJugador + 'px';
-            rivalEl.style.left = posXRival + 'px';
-            
-            vidaJugador = jugadorConfig.vida;
-            vidaRival = rivalConfig.vida;
-            
+            jugadorEl.classList.remove('oculto'); rivalEl.classList.remove('oculto');
+            posXJugador = 50; posXRival = 380;
+            jugadorEl.style.left = posXJugador + 'px'; rivalEl.style.left = posXRival + 'px';
+            vidaJugador = jugadorConfig.vida; vidaRival = rivalConfig.vida;
             actualizarBarrasVida();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
             sonidoRoundStart();
-            
-            juegoActivo = true;
-            tiempo = 60;
+            juegoActivo = true; tiempo = 60;
             document.getElementById('timer').innerText = tiempo;
-            
             const timerInterval = setInterval(() => {
                 if (!juegoActivo) { clearInterval(timerInterval); return; }
                 tiempo--;
@@ -937,83 +821,67 @@
                     clearInterval(timerInterval);
                 }
             }, 1000);
-            
             bucleJuego();
         }
 
         function bucleJuego() {
             if (!juegoActivo) return;
-            
             const jugadorCanvas = document.querySelector('#jugador canvas');
             const rivalCanvas = document.querySelector('#rival canvas');
             let moviendose = false;
-            
             if (teclas['v'] && estadoJugador === 'idle') { estaDefendiendo = true; estadoJugador = 'defensa'; }
             else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
-            
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
                 if (teclas['arrowleft'] && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
                 if (teclas['arrowright'] && posXJugador < 450) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
-                
                 if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
-                    estaSaltando = true;
-                    estadoJugador = 'saltando';
+                    estaSaltando = true; estadoJugador = 'saltando';
                     const jugadorEl = document.getElementById('jugador');
                     jugadorEl.style.bottom = 'calc(30% + 50px)';
                     setTimeout(() => { jugadorEl.style.bottom = '30%'; }, 300);
                     setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
                 }
-                
                 if (moviendose && estadoJugador === 'idle') {
                     animTimer++;
                     if (animTimer < 15) estadoJugador = 'caminar1';
                     else if (animTimer < 30) estadoJugador = 'caminar2';
                     else animTimer = 0;
                 } else if (!moviendose && (estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
-                    estadoJugador = 'idle';
-                    animTimer = 0;
+                    estadoJugador = 'idle'; animTimer = 0;
                 }
             }
-            
             document.getElementById('jugador').style.left = posXJugador + 'px';
             const mirarDerechaJugador = posXRival > posXJugador;
             const frameJugador = ANIMACIONES[estadoJugador];
             dibujarFrame(jugadorCanvas, spriteSheets[jugadorNum], frameJugador[0], frameJugador[1], !mirarDerechaJugador);
-            
             if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' &&
                 (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                 if (teclas['z']) atacar('puñetazo', jugadorConfig.daño, 300);
                 else if (teclas['x']) atacar('patada', jugadorConfig.daño * 1.5, 400);
                 else if (teclas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
             }
-            
             let moviendoseRival = false;
             if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
                 estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
                 if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * 0.6; moviendoseRival = true; }
                 else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * 0.6; moviendoseRival = true; }
-                
                 if (moviendoseRival) {
                     animTimerRival++;
                     if (animTimerRival < 15) estadoRival = 'caminar1';
                     else if (animTimerRival < 30) estadoRival = 'caminar2';
                     else animTimerRival = 0;
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
-                    estadoRival = 'idle';
-                    animTimerRival = 0;
+                    estadoRival = 'idle'; animTimerRival = 0;
                 }
-                
                 if (Math.random() < 0.005 && Math.abs(posXRival - posXJugador) < 150) {
                     estadoRival = 'defensa';
                     setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 500);
                 }
             }
-            
             document.getElementById('rival').style.left = posXRival + 'px';
             const mirarDerechaRival = posXJugador > posXRival;
             const frameRival = ANIMACIONES[estadoRival];
             dibujarFrame(rivalCanvas, spriteSheets[rivalNum], frameRival[0], frameRival[1], !mirarDerechaRival);
-            
             if (Math.random() < 0.015 && Math.abs(posXRival - posXJugador) < 150 && 
                 estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
                 estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado') {
@@ -1024,39 +892,28 @@
                 const duracion = ataqueRival === 'puñetazo' ? 300 : ataqueRival === 'patada' ? 400 : 500;
                 atacarRival(ataqueRival, dañoRival, duracion);
             }
-            
             requestAnimationFrame(bucleJuego);
         }
 
         function atacar(tipo, daño, duracion) {
-            cooldownAtaque = true;
-            estadoJugador = tipo;
+            cooldownAtaque = true; estadoJugador = tipo;
             const distancia = Math.abs(posXRival - posXJugador);
-            
             sonidoGolpe(tipo);
-            
             if (distancia < 120) {
                 setTimeout(() => {
                     let dañoFinal = daño;
                     if (estadoRival === 'defensa') {
                         dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXRival, 'BLOQ');
-                        sonidoBloqueo();
+                        mostrarEfectoGolpe(posXRival, 'BLOQ'); sonidoBloqueo();
                     } else {
                         estadoRival = 'golpeado';
                         mostrarEfectoGolpe(posXRival, tipo);
                     }
-                    vidaRival -= dañoFinal;
-                    actualizarBarrasVida();
+                    vidaRival -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle'; }, 300);
-                    
                     if (vidaRival <= 0) {
-                        estadoRival = 'derrotado';
-                        dibujarDerrotado('rival');
-                        sonidoKO();
-                        setTimeout(() => {
-                            ganarRound();
-                        }, 2000);
+                        estadoRival = 'derrotado'; dibujarDerrotado('rival'); sonidoKO();
+                        setTimeout(() => { ganarRound(); }, 2000);
                     }
                 }, 100);
             }
@@ -1069,29 +926,21 @@
         function atacarRival(tipo, daño, duracion) {
             estadoRival = tipo;
             const distancia = Math.abs(posXRival - posXJugador);
-            
             if (distancia < 120) {
                 setTimeout(() => {
                     let dañoFinal = daño;
                     if (estaDefendiendo) {
                         dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXJugador, 'BLOQ');
-                        sonidoBloqueo();
+                        mostrarEfectoGolpe(posXJugador, 'BLOQ'); sonidoBloqueo();
                     } else {
                         estadoJugador = 'golpeado';
                         mostrarEfectoGolpe(posXJugador, tipo);
                     }
-                    vidaJugador -= dañoFinal;
-                    actualizarBarrasVida();
+                    vidaJugador -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
-                    
                     if (vidaJugador <= 0) {
-                        estadoJugador = 'derrotado';
-                        dibujarDerrotado('jugador');
-                        sonidoKO();
-                        setTimeout(() => {
-                            perderRound();
-                        }, 2000);
+                        estadoJugador = 'derrotado'; dibujarDerrotado('jugador'); sonidoKO();
+                        setTimeout(() => { perderRound(); }, 2000);
                     }
                 }, 100);
             }
@@ -1102,10 +951,7 @@
 
         function ganarRound() {
             if (!juegoActivo) return;
-            juegoActivo = false;
-            victoriasJugador++;
-            actualizarMarcador();
-            sonidoVictoria();
+            juegoActivo = false; victoriasJugador++; actualizarMarcador(); sonidoVictoria();
             setTimeout(() => {
                 if (victoriasJugador >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(true);
                 else mostrarPantallaRound(true);
@@ -1114,10 +960,7 @@
 
         function perderRound() {
             if (!juegoActivo) return;
-            juegoActivo = false;
-            victoriasRival++;
-            actualizarMarcador();
-            sonidoDerrota();
+            juegoActivo = false; victoriasRival++; actualizarMarcador(); sonidoDerrota();
             setTimeout(() => {
                 if (victoriasRival >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(false);
                 else mostrarPantallaRound(false);
@@ -1129,7 +972,6 @@
             indiceRivalActual = (indiceRivalActual + 1) % rivalesDisponibles.length;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
-            
             const titulo = document.getElementById('round-titulo');
             const mensaje = document.getElementById('round-mensaje');
             titulo.innerText = '¡ROUND ' + roundActual + '!';
@@ -1141,11 +983,8 @@
 
         function siguienteRound() {
             document.getElementById('pantalla-round').classList.remove('visible');
-            estadoJugador = 'idle';
-            estadoRival = 'idle';
-            estaSaltando = false;
-            estaDefendiendo = false;
-            cooldownAtaque = false;
+            estadoJugador = 'idle'; estadoRival = 'idle';
+            estaSaltando = false; estaDefendiendo = false; cooldownAtaque = false;
             iniciarRound();
         }
 
@@ -1154,18 +993,15 @@
             document.getElementById('controles-info').classList.add('oculto');
             document.getElementById('jugador').classList.add('oculto');
             document.getElementById('rival').classList.add('oculto');
-            
             const titulo = document.getElementById('resultado-final-titulo');
             const resultado = document.getElementById('resultado-final');
             if (gano) {
-                titulo.innerText = '¡CAMPEÓN!';
-                titulo.style.color = '#0f0';
+                titulo.innerText = '¡CAMPEÓN!'; titulo.style.color = '#0f0';
                 resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Ganaste el combate!</p>' +
                     '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
                     '<p style="color: #ff0;">Derrotaste a todos tus rivales</p>';
             } else {
-                titulo.innerText = '¡DERROTADO!';
-                titulo.style.color = '#f00';
+                titulo.innerText = '¡DERROTADO!'; titulo.style.color = '#f00';
                 resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Perdiste el combate</p>' +
                     '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
                     '<p style="color: #ff0;">Inténtalo de nuevo</p>';
@@ -1185,16 +1021,14 @@
             else if (tipo === 'patada') efecto.innerText = 'BAM!';
             else if (tipo === 'especial') efecto.innerText = 'BOOM!';
             else efecto.innerText = 'BLOQ!';
-            efecto.style.left = x + 'px';
-            efecto.style.bottom = '40%';
+            efecto.style.left = x + 'px'; efecto.style.bottom = '40%';
             document.getElementById('juego').appendChild(efecto);
             setTimeout(() => efecto.remove(), 500);
         }
 
         function mostrarAnuncio(texto) {
             const anuncio = document.createElement('div');
-            anuncio.id = 'anuncio';
-            anuncio.innerText = texto;
+            anuncio.id = 'anuncio'; anuncio.innerText = texto;
             document.getElementById('juego').appendChild(anuncio);
             setTimeout(() => anuncio.remove(), 2000);
         }
