@@ -489,6 +489,7 @@
             puñetazo: new Audio('puñetazo.mp3'),
             patada: new Audio('patada.mp3'),
             especial: new Audio('especial.mp3'),
+            hadouken: new Audio('hadouken.mp3'),
             bloqueo: new Audio('bloqueo.mp3'),
             ko: new Audio('ko.mp3'),
             inicioround: new Audio('inicioround.mp3'),
@@ -546,15 +547,13 @@
         function seleccionarPersonaje(num) {
             vibrarBoton();
             jugadorNum = num;
-            // 3 combates: 2 rivales aleatorios + Carapan al final
             rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
             rivalesDisponibles.sort(() => Math.random() - 0.5);
-            rivalesDisponibles.push(4); // Carapan siempre al final
+            rivalesDisponibles.push(4);
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
             rivalConfig = PERSONAJES[rivalNum];
-            // Reiniciar contadores de combate
             roundActual = 1;
             victoriasJugador = 0;
             victoriasRival = 0;
@@ -563,9 +562,164 @@
 
         const teclas = {};
 
+        // ============================================================
+        // SISTEMA DE BOLA DE ENERGÍA (HADOKEN) - CON DIRECCIÓN
+        // ============================================================
+        const SECUENCIA_ESPECIAL_DERECHA = ['arrowleft', 'arrowdown', 'arrowright', 'z'];
+        const SECUENCIA_ESPECIAL_IZQUIERDA = ['arrowright', 'arrowdown', 'arrowleft', 'z'];
+        const MAX_TIEMPO_ENTRE_INPUTS = 500;
+        let bufferInputs = [];
+        let bolasEnergia = [];
+
+        function registrarInputParaEspecial(tecla) {
+            const ahora = Date.now();
+            bufferInputs.push({ tecla: tecla, tiempo: ahora });
+            
+            if (bufferInputs.length > 4) {
+                bufferInputs.shift();
+            }
+            
+            if (bufferInputs.length === 4) {
+                // Determinar qué secuencia usar según la dirección del rival
+                const secuencia = (posXRival > posXJugador) ? SECUENCIA_ESPECIAL_DERECHA : SECUENCIA_ESPECIAL_IZQUIERDA;
+                
+                let coincide = true;
+                for (let i = 0; i < 4; i++) {
+                    if (bufferInputs[i].tecla !== secuencia[i]) {
+                        coincide = false;
+                        break;
+                    }
+                    if (i > 0) {
+                        const diferencia = bufferInputs[i].tiempo - bufferInputs[i-1].tiempo;
+                        if (diferencia > MAX_TIEMPO_ENTRE_INPUTS) {
+                            coincide = false;
+                            break;
+                        }
+                    }
+                }
+                
+                if (coincide && bolasEnergia.length === 0 && estadoJuego === 'combate') {
+                    lanzarBolaEnergia();
+                    bufferInputs = [];
+                }
+            }
+        }
+
+        function lanzarBolaEnergia() {
+            estadoJugador = 'puñetazo';
+            reproducirSonido('hadouken');
+            
+            // Determinar dirección de la bola según la posición del rival
+            const direccion = (posXRival > posXJugador) ? 1 : -1;
+            
+            bolasEnergia.push({
+                x: posXJugador + (direccion === 1 ? 140 : -40),
+                y: 200,
+                velocidad: 10 * direccion,
+                radio: 20,
+                activa: true
+            });
+        }
+
+        function actualizarBolasEnergia() {
+            for (let i = bolasEnergia.length - 1; i >= 0; i--) {
+                const bola = bolasEnergia[i];
+                if (!bola.activa) {
+                    bolasEnergia.splice(i, 1);
+                    continue;
+                }
+                
+                bola.x += bola.velocidad;
+                
+                const distanciaX = Math.abs(bola.x - (posXRival + 70));
+                const distanciaY = Math.abs(bola.y - 100);
+                
+                if (distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
+                    let dañoFinal = 15;
+                    if (estadoRival === 'defensa') {
+                        dañoFinal = dañoFinal * 0.2;
+                        mostrarEfectoGolpe(posXRival, 'BLOQ');
+                        reproducirSonido('bloqueo');
+                    } else {
+                        estadoRival = 'golpeado';
+                        mostrarEfectoGolpe(posXRival, 'especial');
+                    }
+                    vidaRival -= dañoFinal;
+                    actualizarBarrasVida();
+                    
+                    setTimeout(() => {
+                        if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle';
+                    }, 300);
+                    
+                    if (vidaRival <= 0) {
+                        estadoRival = 'derrotado';
+                        dibujarDerrotado('rival');
+                        reproducirSonido('ko');
+                        setTimeout(() => { ganarRound(); }, 2000);
+                    }
+                    
+                    bola.activa = false;
+                    bolasEnergia.splice(i, 1);
+                    continue;
+                }
+                
+                // Eliminar si sale de la pantalla por cualquier lado
+                if (bola.x > 525 || bola.x < -40) {
+                    bola.activa = false;
+                    bolasEnergia.splice(i, 1);
+                }
+            }
+        }
+
+        function dibujarBolasEnergia() {
+            const juego = document.getElementById('juego');
+            document.querySelectorAll('.bola-energia').forEach(el => el.remove());
+            
+            bolasEnergia.forEach(bola => {
+                if (!bola.activa) return;
+                
+                const contenedor = document.createElement('div');
+                contenedor.className = 'bola-energia';
+                contenedor.style.position = 'absolute';
+                contenedor.style.left = bola.x + 'px';
+                contenedor.style.bottom = bola.y + 'px';
+                contenedor.style.width = (bola.radio * 2) + 'px';
+                contenedor.style.height = (bola.radio * 2) + 'px';
+                contenedor.style.zIndex = '150';
+                contenedor.style.pointerEvents = 'none';
+                
+                for (let i = 3; i >= 1; i--) {
+                    const estela = document.createElement('div');
+                    estela.style.position = 'absolute';
+                    estela.style.left = (-i * 15) + 'px';
+                    estela.style.top = '50%';
+                    estela.style.transform = 'translateY(-50%)';
+                    estela.style.width = (bola.radio * 2 - i * 5) + 'px';
+                    estela.style.height = (bola.radio * 2 - i * 5) + 'px';
+                    estela.style.borderRadius = '50%';
+                    estela.style.background = `radial-gradient(circle, rgba(0,255,255,${0.3 - i * 0.1}) 0%, transparent 70%)`;
+                    contenedor.appendChild(estela);
+                }
+                
+                const bolaPrincipal = document.createElement('div');
+                bolaPrincipal.style.position = 'absolute';
+                bolaPrincipal.style.width = '100%';
+                bolaPrincipal.style.height = '100%';
+                bolaPrincipal.style.borderRadius = '50%';
+                bolaPrincipal.style.background = 'radial-gradient(circle, #fff 0%, #0ff 30%, #00f 70%, transparent 100%)';
+                bolaPrincipal.style.boxShadow = '0 0 20px #0ff, 0 0 40px #00f';
+                contenedor.appendChild(bolaPrincipal);
+                
+                juego.appendChild(contenedor);
+            });
+        }
+
         function activarTecla(tecla) { 
             teclas[tecla] = true; 
             vibrarBoton();
+            
+            registrarInputParaEspecial(tecla);
+            
             if (estadoJuego === 'menu') manejarMenu(tecla);
             else if (estadoJuego === 'round') manejarRound(tecla);
             else if (estadoJuego === 'final') manejarFinal(tecla);
@@ -696,25 +850,43 @@
         }
 
         function iniciarRound() {
+            estadoJugador = 'idle';
+            estadoRival = 'idle';
+            estaSaltando = false;
+            estaDefendiendo = false;
+            rivalSaltando = false;
+            cooldownAtaque = false;
+            animTimer = 0;
+            animTimerRival = 0;
+            juegoActivo = false;
+            bolasEnergia = [];
+            bufferInputs = [];
+            
             estadoJuego = 'combate';
             document.getElementById('modo-indicador').classList.add('oculto');
             
             document.getElementById('pantalla-inicio').classList.add('oculto');
             document.getElementById('pantalla-final').classList.add('oculto');
+            document.getElementById('pantalla-round').classList.remove('visible');
             document.getElementById('hud').classList.remove('oculto');
             document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
             document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
             document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + ROUNDS_POR_COMBATE;
             actualizarMarcador();
+            
             const jugadorEl = document.getElementById('jugador');
             const rivalEl = document.getElementById('rival');
-            jugadorEl.classList.remove('oculto'); rivalEl.classList.remove('oculto');
+            jugadorEl.classList.remove('oculto'); 
+            rivalEl.classList.remove('oculto');
             
             posXJugador = 30; 
             posXRival = 355;
             
             jugadorEl.style.left = posXJugador + 'px'; 
             rivalEl.style.left = posXRival + 'px';
+            jugadorEl.style.bottom = '2%';
+            rivalEl.style.bottom = '2%';
+            
             vidaJugador = jugadorConfig.vida; 
             vidaRivalMax = Math.round(rivalConfig.vida * 1.4);
             vidaRival = vidaRivalMax;
@@ -722,9 +894,11 @@
             actualizarFondo();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
             reproducirSonido('inicioround');
+            
             juegoActivo = true; 
             tiempo = 60;
             document.getElementById('timer').innerText = tiempo;
+            
             const timerInterval = setInterval(() => {
                 if (!juegoActivo) { clearInterval(timerInterval); return; }
                 tiempo--;
@@ -817,6 +991,10 @@
                 const duracion = ataqueRival === 'puñetazo' ? 300 : ataqueRival === 'patada' ? 400 : 500;
                 atacarRival(ataqueRival, dañoRival, duracion);
             }
+            
+            actualizarBolasEnergia();
+            dibujarBolasEnergia();
+            
             requestAnimationFrame(bucleJuego);
         }
 
@@ -877,7 +1055,6 @@
             }, duracion);
         }
 
-        // SISTEMA CORREGIDO: Mejor de 3 rounds por combate
         function ganarRound() {
             if (!juegoActivo) return;
             juegoActivo = false; 
@@ -886,17 +1063,13 @@
             reproducirSonido('victoria');
             
             setTimeout(() => {
-                // Si el jugador ganó 2 rounds, gana el COMBATE
                 if (victoriasJugador >= 2) {
-                    // Si era el último combate (Carapan), termina el juego
                     if (indiceRivalActual >= rivalesDisponibles.length - 1) {
                         mostrarResultadoFinal(true);
                     } else {
-                        // Pasar al siguiente combate (siguiente rival)
                         mostrarPantallaCombate(true);
                     }
                 } else {
-                    // Seguir con el siguiente round del mismo combate
                     roundActual++;
                     iniciarRound();
                 }
@@ -911,36 +1084,29 @@
             reproducirSonido('derrota');
             
             setTimeout(() => {
-                // Si el rival ganó 2 rounds, pierde el COMBATE
                 if (victoriasRival >= 2) {
-                    // Si era el último combate (Carapan), termina el juego
                     if (indiceRivalActual >= rivalesDisponibles.length - 1) {
                         mostrarResultadoFinal(false);
                     } else {
-                        // Pasar al siguiente combate (siguiente rival)
                         mostrarPantallaCombate(false);
                     }
                 } else {
-                    // Seguir con el siguiente round del mismo combate
                     roundActual++;
                     iniciarRound();
                 }
             }, 500);
         }
 
-        // Nueva función: pantalla entre combates (cambio de rival)
         function mostrarPantallaCombate(ganoCombate) {
             estadoJuego = 'round';
             const indicador = document.getElementById('modo-indicador');
             indicador.innerText = 'FIN DE COMBATE: Pulsa A para continuar';
             indicador.classList.remove('oculto');
             
-            // Pasar al siguiente rival
             indiceRivalActual++;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
             
-            // Reiniciar rounds del nuevo combate
             roundActual = 1;
             victoriasJugador = 0;
             victoriasRival = 0;
@@ -987,7 +1153,6 @@
         }
 
         function actualizarMarcador() {
-            // Mostrar victorias del combate actual (mejor de 3)
             for (let i = 1; i <= 3; i++) document.getElementById('v-j' + i).classList.remove('ganada');
             for (let i = 1; i <= victoriasJugador; i++) document.getElementById('v-j' + i).classList.add('ganada');
         }
