@@ -162,9 +162,9 @@
 
         .luchador {
             position: absolute;
-            bottom: 5%;
-            width: 110px;
-            height: 165px;
+            bottom: 2%;
+            width: 140px;
+            height: 210px;
             z-index: 50;
         }
 
@@ -511,7 +511,7 @@
         }
 
         const PARALLAX_FACTOR = 0.4;
-        const POSICION_INICIAL_X = 200;
+        const POSICION_INICIAL_X = 30;
 
         function actualizarFondo() {
             const juego = document.getElementById('juego');
@@ -612,10 +612,11 @@
         });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
+        // Daño reducido 40%
         const PERSONAJES = {
-            1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
-            2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
-            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 18 }
+            1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
+            2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
+            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 }
         };
 
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
@@ -632,6 +633,7 @@
         let estadoJugador = 'idle', estadoRival = 'idle';
         let animTimer = 0, animTimerRival = 0;
         let estaSaltando = false, estaDefendiendo = false;
+        let rivalSaltando = false; // NUEVO: control de salto del rival
         let roundActual = 1;
         const TOTAL_ROUNDS = 3;
         let victoriasJugador = 0, victoriasRival = 0;
@@ -690,14 +692,20 @@
             const jugadorEl = document.getElementById('jugador');
             const rivalEl = document.getElementById('rival');
             jugadorEl.classList.remove('oculto'); rivalEl.classList.remove('oculto');
-            posXJugador = 200; posXRival = 320;
-            jugadorEl.style.left = posXJugador + 'px'; rivalEl.style.left = posXRival + 'px';
-            vidaJugador = jugadorConfig.vida; vidaRival = rivalConfig.vida;
+            
+            posXJugador = 30; 
+            posXRival = 355;
+            
+            jugadorEl.style.left = posXJugador + 'px'; 
+            rivalEl.style.left = posXRival + 'px';
+            vidaJugador = jugadorConfig.vida; 
+            vidaRival = rivalConfig.vida;
             actualizarBarrasVida();
             actualizarFondo();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
             reproducirSonido('inicioround');
-            juegoActivo = true; tiempo = 60;
+            juegoActivo = true; 
+            tiempo = 60;
             document.getElementById('timer').innerText = tiempo;
             const timerInterval = setInterval(() => {
                 if (!juegoActivo) { clearInterval(timerInterval); return; }
@@ -722,12 +730,12 @@
             else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
                 if (teclas['arrowleft'] && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
-                if (teclas['arrowright'] && posXJugador < 415) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
+                if (teclas['arrowright'] && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
                 if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
                     estaSaltando = true; estadoJugador = 'saltando';
                     const jugadorEl = document.getElementById('jugador');
-                    jugadorEl.style.bottom = 'calc(5% + 50px)';
-                    setTimeout(() => { jugadorEl.style.bottom = '5%'; }, 300);
+                    jugadorEl.style.bottom = 'calc(2% + 50px)';
+                    setTimeout(() => { jugadorEl.style.bottom = '2%'; }, 300);
                     setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
                 }
                 if (moviendose && estadoJugador === 'idle') {
@@ -763,9 +771,19 @@
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
                     estadoRival = 'idle'; animTimerRival = 0;
                 }
-                if (Math.random() < 0.005 && Math.abs(posXRival - posXJugador) < 150) {
+                // Rival más defensivo (4%)
+                if (Math.random() < 0.04 && Math.abs(posXRival - posXJugador) < 200) {
                     estadoRival = 'defensa';
-                    setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 500);
+                    setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
+                }
+                // NUEVO: Rival salta aleatoriamente (1% de probabilidad)
+                if (Math.random() < 0.01 && !rivalSaltando && estadoRival === 'idle') {
+                    rivalSaltando = true;
+                    estadoRival = 'saltando';
+                    const rivalEl = document.getElementById('rival');
+                    rivalEl.style.bottom = 'calc(2% + 50px)';
+                    setTimeout(() => { rivalEl.style.bottom = '2%'; }, 300);
+                    setTimeout(() => { rivalSaltando = false; if (vidaRival > 0) estadoRival = 'idle'; }, 600);
                 }
             }
             document.getElementById('rival').style.left = posXRival + 'px';
@@ -774,7 +792,7 @@
             dibujarFrame(rivalCanvas, spriteSheets[rivalNum], frameRival[0], frameRival[1], !mirarDerechaRival);
             if (Math.random() < 0.015 && Math.abs(posXRival - posXJugador) < 150 && 
                 estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
-                estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado') {
+                estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado' && !rivalSaltando) {
                 const ataques = ['puñetazo', 'patada', 'especial'];
                 const ataqueRival = ataques[Math.floor(Math.random() * ataques.length)];
                 const dañoRival = ataqueRival === 'puñetazo' ? rivalConfig.daño : 
