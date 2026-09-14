@@ -423,12 +423,12 @@
                         <div class="selector-personajes">
                             <div class="personaje-opcion seleccionado" data-personaje="1">
                                 <img src="001.png" alt="Personaje 1">
-                                <h3>Abuela Tech</h3>
+                                <h3>Niña Punk</h3>
                                 <div class="stats">Vida: ★★★<br>Vel: ★★<br>Daño: ★★</div>
                             </div>
                             <div class="personaje-opcion" data-personaje="2">
                                 <img src="002.png" alt="Personaje 2">
-                                <h3>Niña Punk</h3>
+                                <h3>Abuela Tech</h3>
                                 <div class="stats">Vida: ★★<br>Vel: ★★★<br>Daño: ★★★</div>
                             </div>
                             <div class="personaje-opcion" data-personaje="3">
@@ -483,12 +483,8 @@
         window.addEventListener('load', escalarConsola);
         escalarConsola();
 
-        // ============================================================
-        // SISTEMA DE AUDIO COMPLETO CON MP3
-        // ============================================================
         let sonidoActivado = true;
 
-        // Precargar todos los sonidos MP3
         const sonidos = {
             puñetazo: new Audio('puñetazo.mp3'),
             patada: new Audio('patada.mp3'),
@@ -497,18 +493,17 @@
             ko: new Audio('ko.mp3'),
             inicioround: new Audio('inicioround.mp3'),
             victoria: new Audio('victoria.mp3'),
-            derrota: new Audio('derrota.mp3')
+            derrota: new Audio('derrota.mp3'),
+            menu: new Audio('menu.mp3'),
+            seleccion: new Audio('seleccion.mp3')
         };
 
-        // Configurar volumen de todos
         Object.values(sonidos).forEach(s => s.volume = 0.7);
 
-        // Función universal para reproducir sonidos
         function reproducirSonido(nombre) {
             if (!sonidoActivado) return;
             const sonido = sonidos[nombre];
             if (sonido) {
-                // Clonar para permitir múltiples reproducciones simultáneas
                 const clone = sonido.cloneNode(true);
                 clone.volume = 0.7;
                 clone.play().catch(e => console.log('Error reproduciendo ' + nombre + ':', e));
@@ -536,11 +531,14 @@
             if (opciones[indicePersonaje]) {
                 opciones[indicePersonaje].classList.add('seleccionado');
             }
-            const nombres = ['Abuela Tech', 'Niña Punk', 'Abuela Cool'];
-            document.getElementById('modo-indicador').innerText = 'MENÚ: ' + nombres[indicePersonaje];
+            const nombres = ['Niña Punk', 'Abuela Tech', 'Abuela Cool'];
+            const indicador = document.getElementById('modo-indicador');
+            indicador.innerText = 'MENÚ: ' + nombres[indicePersonaje];
+            indicador.classList.remove('oculto');
         }
 
         function confirmarSeleccionPersonaje() {
+            reproducirSonido('seleccion');
             const num = indicePersonaje + 1;
             seleccionarPersonaje(num);
         }
@@ -574,11 +572,13 @@
             if (menuCooldown) return;
             if (tecla === 'arrowleft') {
                 indicePersonaje = Math.max(0, indicePersonaje - 1);
+                reproducirSonido('menu');
                 actualizarSeleccionMenu();
                 menuCooldown = true;
                 setTimeout(() => menuCooldown = false, 200);
             } else if (tecla === 'arrowright') {
                 indicePersonaje = Math.min(2, indicePersonaje + 1);
+                reproducirSonido('menu');
                 actualizarSeleccionMenu();
                 menuCooldown = true;
                 setTimeout(() => menuCooldown = false, 200);
@@ -613,8 +613,8 @@
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
         const PERSONAJES = {
-            1: { nombre: 'Abuela Tech', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
-            2: { nombre: 'Niña Punk', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
+            1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
+            2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
             3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 18 }
         };
 
@@ -678,7 +678,8 @@
 
         function iniciarRound() {
             estadoJuego = 'combate';
-            document.getElementById('modo-indicador').innerText = 'COMBATE: Round ' + roundActual;
+            document.getElementById('modo-indicador').classList.add('oculto');
+            
             document.getElementById('pantalla-inicio').classList.add('oculto');
             document.getElementById('pantalla-final').classList.add('oculto');
             document.getElementById('hud').classList.remove('oculto');
@@ -787,7 +788,7 @@
         function atacar(tipo, daño, duracion) {
             cooldownAtaque = true; estadoJugador = tipo;
             const distancia = Math.abs(posXRival - posXJugador);
-            reproducirSonido(tipo); // Sonido del ataque del jugador
+            reproducirSonido(tipo);
             if (distancia < 120) {
                 setTimeout(() => {
                     let dañoFinal = daño;
@@ -815,7 +816,7 @@
 
         function atacarRival(tipo, daño, duracion) {
             estadoRival = tipo;
-            reproducirSonido(tipo); // Sonido del ataque del rival
+            reproducirSonido(tipo);
             const distancia = Math.abs(posXRival - posXJugador);
             if (distancia < 120) {
                 setTimeout(() => {
@@ -861,7 +862,10 @@
 
         function mostrarPantallaRound(ganoJugador) {
             estadoJuego = 'round';
-            document.getElementById('modo-indicador').innerText = 'FIN DE ROUND: Pulsa A para continuar';
+            const indicador = document.getElementById('modo-indicador');
+            indicador.innerText = 'FIN DE ROUND: Pulsa A para continuar';
+            indicador.classList.remove('oculto');
+            
             roundActual++;
             indiceRivalActual = (indiceRivalActual + 1) % rivalesDisponibles.length;
             rivalNum = rivalesDisponibles[indiceRivalActual];
@@ -885,7 +889,10 @@
 
         function mostrarResultadoFinal(gano) {
             estadoJuego = 'final';
-            document.getElementById('modo-indicador').innerText = 'FIN DEL JUEGO: Pulsa A para reiniciar';
+            const indicador = document.getElementById('modo-indicador');
+            indicador.innerText = 'FIN DEL JUEGO: Pulsa A para reiniciar';
+            indicador.classList.remove('oculto');
+            
             document.getElementById('hud').classList.add('oculto');
             document.getElementById('jugador').classList.add('oculto');
             document.getElementById('rival').classList.add('oculto');
