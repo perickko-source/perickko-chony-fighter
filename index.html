@@ -563,44 +563,38 @@
         const teclas = {};
 
         // ============================================================
-        // SISTEMA DE BOLA DE ENERGÍA (HADOKEN) - CON DIRECCIÓN
+        // SISTEMA DE BOLA DE ENERGÍA (HADOKEN) - SIMPLIFICADO
         // ============================================================
-        const SECUENCIA_ESPECIAL_DERECHA = ['arrowleft', 'arrowdown', 'arrowright', 'z'];
-        const SECUENCIA_ESPECIAL_IZQUIERDA = ['arrowright', 'arrowdown', 'arrowleft', 'z'];
         const MAX_TIEMPO_ENTRE_INPUTS = 500;
         let bufferInputs = [];
         let bolasEnergia = [];
+        let ultimaTeclaDireccion = null;
+        let tiempoUltimaDireccion = 0;
 
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
-            bufferInputs.push({ tecla: tecla, tiempo: ahora });
             
-            if (bufferInputs.length > 4) {
-                bufferInputs.shift();
+            // Guardar la última tecla de dirección
+            if (tecla === 'arrowleft' || tecla === 'arrowright') {
+                ultimaTeclaDireccion = tecla;
+                tiempoUltimaDireccion = ahora;
             }
             
-            if (bufferInputs.length === 4) {
-                // Determinar qué secuencia usar según la dirección del rival
-                const secuencia = (posXRival > posXJugador) ? SECUENCIA_ESPECIAL_DERECHA : SECUENCIA_ESPECIAL_IZQUIERDA;
-                
-                let coincide = true;
-                for (let i = 0; i < 4; i++) {
-                    if (bufferInputs[i].tecla !== secuencia[i]) {
-                        coincide = false;
-                        break;
+            // Si se pulsa A (z) y hay una dirección reciente
+            if (tecla === 'z' && ultimaTeclaDireccion && (ahora - tiempoUltimaDireccion < MAX_TIEMPO_ENTRE_INPUTS)) {
+                // Verificar que no hay bola activa
+                if (bolasEnergia.length === 0 && estadoJuego === 'combate') {
+                    // Determinar si la dirección es correcta según la posición del rival
+                    const rivalADerecha = posXRival > posXJugador;
+                    const direccionCorrecta = (rivalADerecha && ultimaTeclaDireccion === 'arrowleft') ||
+                                             (!rivalADerecha && ultimaTeclaDireccion === 'arrowright');
+                    
+                    if (direccionCorrecta) {
+                        lanzarBolaEnergia();
+                        // Reset para evitar lanzamientos múltiples
+                        ultimaTeclaDireccion = null;
+                        tiempoUltimaDireccion = 0;
                     }
-                    if (i > 0) {
-                        const diferencia = bufferInputs[i].tiempo - bufferInputs[i-1].tiempo;
-                        if (diferencia > MAX_TIEMPO_ENTRE_INPUTS) {
-                            coincide = false;
-                            break;
-                        }
-                    }
-                }
-                
-                if (coincide && bolasEnergia.length === 0 && estadoJuego === 'combate') {
-                    lanzarBolaEnergia();
-                    bufferInputs = [];
                 }
             }
         }
@@ -619,6 +613,13 @@
                 radio: 20,
                 activa: true
             });
+
+            // CORRECCIÓN: Volver a idle después del sprite de puñetazo
+            setTimeout(() => {
+                if (vidaJugador > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') {
+                    estadoJugador = 'idle';
+                }
+            }, 300);
         }
 
         function actualizarBolasEnergia() {
@@ -861,6 +862,8 @@
             juegoActivo = false;
             bolasEnergia = [];
             bufferInputs = [];
+            ultimaTeclaDireccion = null;
+            tiempoUltimaDireccion = 0;
             
             estadoJuego = 'combate';
             document.getElementById('modo-indicador').classList.add('oculto');
