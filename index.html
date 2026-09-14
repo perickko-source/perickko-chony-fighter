@@ -154,11 +154,12 @@
             box-shadow: 0 0 5px #0f0;
         }
 
+        /* CAMBIO: Personajes en combate más grandes (110×165) */
         .luchador {
             position: absolute;
             bottom: 30%;
-            width: 80px;
-            height: 120px;
+            width: 110px;
+            height: 165px;
             z-index: 50;
         }
 
@@ -227,7 +228,6 @@
             background: rgba(255,255,255,0.1);
         }
 
-        /* CURSOR AMARILLO DE SELECCIÓN */
         .personaje-opcion.seleccionado {
             border: 3px solid #ff0;
             background: rgba(255,255,0,0.25);
@@ -235,8 +235,9 @@
             transform: scale(1.05);
         }
 
+        /* CAMBIO: Imágenes de selección más grandes (110px) */
         .personaje-opcion img {
-            height: 80px;
+            height: 110px;
             object-fit: contain;
         }
 
@@ -268,7 +269,6 @@
             transition: all 0.2s;
         }
 
-        /* CURSOR AMARILLO EN BOTONES DE MENÚ */
         .btn-juego.seleccionado {
             border-color: #ff0;
             background: #fff;
@@ -336,7 +336,6 @@
             text-align: center;
         }
 
-        /* BOTONES TÁCTILES - POSICIONES CALIBRADAS (INVISIBLES) */
         .boton-tactil {
             position: absolute;
             z-index: 1000;
@@ -344,9 +343,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .boton-tactil:active {
-            opacity: 0.3;
-        }
+        .boton-tactil:active { opacity: 0.3; }
 
         #btn-up { top: 586px; left: 113px; width: 70px; height: 70px; }
         #btn-down { top: 733px; left: 117px; width: 70px; height: 70px; }
@@ -361,7 +358,6 @@
 
         .boton-tactil.activo { opacity: 0.3; }
 
-        /* Indicador de modo */
         #modo-indicador {
             position: absolute;
             top: 5px;
@@ -449,7 +445,6 @@
                 </div>
             </div>
 
-            <!-- BOTONES TÁCTILES INVISIBLES -->
             <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
             <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
@@ -464,9 +459,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // VIBRACIÓN AL PULSAR BOTONES
-        // ============================================================
         function vibrarBoton() {
             try {
                 if (navigator.vibrate) {
@@ -623,32 +615,18 @@
             });
         }
 
-        // ============================================================
-        // SISTEMA DE MENÚS CON NAVEGACIÓN POR BOTONES
-        // ============================================================
-        
-        // Estados del juego: 'menu', 'combate', 'round', 'final'
         let estadoJuego = 'menu';
-        
-        // Índice de selección en el menú de personajes (0, 1, 2)
         let indicePersonaje = 0;
-        
-        // Cooldown para evitar cambios demasiado rápidos
         let menuCooldown = false;
 
         function actualizarSeleccionMenu() {
-            // Quitar selección de todos los personajes
             document.querySelectorAll('.personaje-opcion').forEach(el => {
                 el.classList.remove('seleccionado');
             });
-            
-            // Añadir selección al actual
             const opciones = document.querySelectorAll('.personaje-opcion');
             if (opciones[indicePersonaje]) {
                 opciones[indicePersonaje].classList.add('seleccionado');
             }
-            
-            // Actualizar indicador
             const nombres = ['Abuela Tech', 'Niña Punk', 'Abuela Cool'];
             document.getElementById('modo-indicador').innerText = 'MENÚ: ' + nombres[indicePersonaje];
         }
@@ -672,31 +650,21 @@
             iniciarRound();
         }
 
-        // ============================================================
-        // CONTROLES TÁCTILES (botones físicos de la consola)
-        // ============================================================
         const teclas = {};
 
         function activarTecla(tecla) { 
             teclas[tecla] = true; 
             initAudio();
             vibrarBoton();
-            
-            // Manejar navegación de menús
-            if (estadoJuego === 'menu') {
-                manejarMenu(tecla);
-            } else if (estadoJuego === 'round') {
-                manejarRound(tecla);
-            } else if (estadoJuego === 'final') {
-                manejarFinal(tecla);
-            }
+            if (estadoJuego === 'menu') manejarMenu(tecla);
+            else if (estadoJuego === 'round') manejarRound(tecla);
+            else if (estadoJuego === 'final') manejarFinal(tecla);
         }
         
         function desactivarTecla(tecla) { teclas[tecla] = false; }
 
         function manejarMenu(tecla) {
             if (menuCooldown) return;
-            
             if (tecla === 'arrowleft') {
                 indicePersonaje = Math.max(0, indicePersonaje - 1);
                 actualizarSeleccionMenu();
@@ -708,23 +676,16 @@
                 menuCooldown = true;
                 setTimeout(() => menuCooldown = false, 200);
             } else if (tecla === 'z' || tecla === 'start') {
-                // Confirmar selección (A o Start)
                 confirmarSeleccionPersonaje();
             }
         }
 
         function manejarRound(tecla) {
-            if (tecla === 'z' || tecla === 'start') {
-                // Confirmar continuar (A o Start)
-                siguienteRound();
-            }
+            if (tecla === 'z' || tecla === 'start') siguienteRound();
         }
 
         function manejarFinal(tecla) {
-            if (tecla === 'z' || tecla === 'start') {
-                // Reiniciar juego (A o Start)
-                location.reload();
-            }
+            if (tecla === 'z' || tecla === 'start') location.reload();
         }
 
         document.querySelectorAll('.boton-tactil').forEach(btn => {
@@ -745,9 +706,6 @@
         });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
-        // ============================================================
-        // CONFIGURACIÓN DE PERSONAJES
-        // ============================================================
         const PERSONAJES = {
             1: { nombre: 'Abuela Tech', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 10 },
             2: { nombre: 'Niña Punk', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 15 },
@@ -1067,9 +1025,7 @@
             document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / rivalConfig.vida) * 100) + '%';
         }
 
-        // Inicializar selección del menú
         actualizarSeleccionMenu();
-        
         cargarSpriteSheets().then(() => console.log('Spritesheets cargados')).catch(() => console.error('Error cargando spritesheets'));
     </script>
 </body>
