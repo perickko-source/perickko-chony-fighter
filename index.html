@@ -52,14 +52,13 @@
             height: 408px;
             z-index: 2;
             overflow: hidden;
-            background: #000;
+            background: transparent;
         }
 
         #juego {
             position: relative;
             width: 100%;
             height: 100%;
-            /* FONDO CON PARALLAX - La imagen se ajusta en altura */
             background-image: url('escenario.png');
             background-size: auto 100%;
             background-position: center bottom;
@@ -67,7 +66,6 @@
             overflow: hidden;
         }
 
-        /* Capa de oscurecimiento sutil para que los personajes destaquen */
         #juego::before {
             content: '';
             position: absolute;
@@ -162,7 +160,6 @@
             box-shadow: 0 0 5px #0f0;
         }
 
-        /* Personajes en combate - ajustados para pisar el suelo */
         .luchador {
             position: absolute;
             bottom: 5%;
@@ -620,17 +617,12 @@
             });
         }
 
-        // ============================================================
-        // PARALLAX DEL FONDO
-        // ============================================================
-        const PARALLAX_FACTOR = 0.4; // Factor de movimiento del fondo (0-1)
-        const POSICION_INICIAL_X = 200; // Posición inicial del jugador
+        const PARALLAX_FACTOR = 0.4;
+        const POSICION_INICIAL_X = 200;
 
         function actualizarFondo() {
             const juego = document.getElementById('juego');
-            // Calcular desplazamiento basado en la posición del jugador
             const desplazamiento = (posXJugador - POSICION_INICIAL_X) * PARALLAX_FACTOR;
-            // Aplicar al background-position (50% es el centro inicial)
             juego.style.backgroundPositionX = `calc(50% - ${desplazamiento}px)`;
         }
 
@@ -806,7 +798,7 @@
             jugadorEl.style.left = posXJugador + 'px'; rivalEl.style.left = posXRival + 'px';
             vidaJugador = jugadorConfig.vida; vidaRival = rivalConfig.vida;
             actualizarBarrasVida();
-            actualizarFondo(); // Inicializar posición del fondo
+            actualizarFondo();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
             sonidoRoundStart();
             juegoActivo = true; tiempo = 60;
@@ -852,10 +844,7 @@
                 }
             }
             document.getElementById('jugador').style.left = posXJugador + 'px';
-            
-            // ACTUALIZAR PARALLAX DEL FONDO
             actualizarFondo();
-            
             const mirarDerechaJugador = posXRival > posXJugador;
             const frameJugador = ANIMACIONES[estadoJugador];
             dibujarFrame(jugadorCanvas, spriteSheets[jugadorNum], frameJugador[0], frameJugador[1], !mirarDerechaJugador);
