@@ -546,16 +546,18 @@
         function seleccionarPersonaje(num) {
             vibrarBoton();
             jugadorNum = num;
-            // Rounds 1 y 2: rivales aleatorios de los 3 seleccionables (excepto el jugador)
+            // 3 combates: 2 rivales aleatorios + Carapan al final
             rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
             rivalesDisponibles.sort(() => Math.random() - 0.5);
-            // Round 3: siempre Carapan (ID 4)
-            rivalesDisponibles.push(4);
+            rivalesDisponibles.push(4); // Carapan siempre al final
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
             rivalConfig = PERSONAJES[rivalNum];
-            roundActual = 1; victoriasJugador = 0; victoriasRival = 0;
+            // Reiniciar contadores de combate
+            roundActual = 1;
+            victoriasJugador = 0;
+            victoriasRival = 0;
             iniciarRound();
         }
 
@@ -615,7 +617,6 @@
         });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
-        // Daño reducido 40%. Carapan (ID 4) añadido como jefe final.
         const PERSONAJES = {
             1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
             2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
@@ -639,7 +640,7 @@
         let estaSaltando = false, estaDefendiendo = false;
         let rivalSaltando = false;
         let roundActual = 1;
-        const TOTAL_ROUNDS = 3;
+        const ROUNDS_POR_COMBATE = 3;
         let victoriasJugador = 0, victoriasRival = 0;
         let rivalesDisponibles = [], indiceRivalActual = 0;
 
@@ -660,7 +661,6 @@
                     img.onload = () => { spriteSheets[3] = img; resolve(); };
                     img.onerror = () => { console.error('❌ No se pudo cargar spritesheet3.png'); reject(); };
                 }),
-                // Carapan: carga opcional (no rompe el juego si falla)
                 new Promise((resolve) => {
                     const img = new Image(); img.src = 'spritesheet4.png';
                     img.onload = () => { 
@@ -669,7 +669,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet4.png - Carapan no estará disponible');
+                        console.error('⚠️ No se pudo cargar spritesheet4.png');
                         resolve();
                     };
                 })
@@ -704,7 +704,7 @@
             document.getElementById('hud').classList.remove('oculto');
             document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
             document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
-            document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + TOTAL_ROUNDS;
+            document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + ROUNDS_POR_COMBATE;
             actualizarMarcador();
             const jugadorEl = document.getElementById('jugador');
             const rivalEl = document.getElementById('rival');
@@ -716,7 +716,6 @@
             jugadorEl.style.left = posXJugador + 'px'; 
             rivalEl.style.left = posXRival + 'px';
             vidaJugador = jugadorConfig.vida; 
-            // Rival con +40% de vida
             vidaRivalMax = Math.round(rivalConfig.vida * 1.4);
             vidaRival = vidaRivalMax;
             actualizarBarrasVida();
@@ -790,13 +789,11 @@
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
                     estadoRival = 'idle'; animTimerRival = 0;
                 }
-                // Carapan es más defensivo (5%), los demás 4%
                 const probBloqueo = (rivalNum === 4) ? 0.05 : 0.04;
                 if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
                     estadoRival = 'defensa';
                     setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
                 }
-                // Rival salta aleatoriamente (1% de probabilidad)
                 if (Math.random() < 0.01 && !rivalSaltando && estadoRival === 'idle') {
                     rivalSaltando = true;
                     estadoRival = 'saltando';
@@ -880,41 +877,79 @@
             }, duracion);
         }
 
-        // CAMBIO: Siempre se juegan los 3 rounds (Carapan es el jefe final)
+        // SISTEMA CORREGIDO: Mejor de 3 rounds por combate
         function ganarRound() {
             if (!juegoActivo) return;
-            juegoActivo = false; victoriasJugador++; actualizarMarcador(); reproducirSonido('victoria');
+            juegoActivo = false; 
+            victoriasJugador++; 
+            actualizarMarcador(); 
+            reproducirSonido('victoria');
+            
             setTimeout(() => {
-                if (roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(true);
-                else mostrarPantallaRound(true);
+                // Si el jugador ganó 2 rounds, gana el COMBATE
+                if (victoriasJugador >= 2) {
+                    // Si era el último combate (Carapan), termina el juego
+                    if (indiceRivalActual >= rivalesDisponibles.length - 1) {
+                        mostrarResultadoFinal(true);
+                    } else {
+                        // Pasar al siguiente combate (siguiente rival)
+                        mostrarPantallaCombate(true);
+                    }
+                } else {
+                    // Seguir con el siguiente round del mismo combate
+                    roundActual++;
+                    iniciarRound();
+                }
             }, 500);
         }
 
         function perderRound() {
             if (!juegoActivo) return;
-            juegoActivo = false; victoriasRival++; actualizarMarcador(); reproducirSonido('derrota');
+            juegoActivo = false; 
+            victoriasRival++; 
+            actualizarMarcador(); 
+            reproducirSonido('derrota');
+            
             setTimeout(() => {
-                if (roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(false);
-                else mostrarPantallaRound(false);
+                // Si el rival ganó 2 rounds, pierde el COMBATE
+                if (victoriasRival >= 2) {
+                    // Si era el último combate (Carapan), termina el juego
+                    if (indiceRivalActual >= rivalesDisponibles.length - 1) {
+                        mostrarResultadoFinal(false);
+                    } else {
+                        // Pasar al siguiente combate (siguiente rival)
+                        mostrarPantallaCombate(false);
+                    }
+                } else {
+                    // Seguir con el siguiente round del mismo combate
+                    roundActual++;
+                    iniciarRound();
+                }
             }, 500);
         }
 
-        function mostrarPantallaRound(ganoJugador) {
+        // Nueva función: pantalla entre combates (cambio de rival)
+        function mostrarPantallaCombate(ganoCombate) {
             estadoJuego = 'round';
             const indicador = document.getElementById('modo-indicador');
-            indicador.innerText = 'FIN DE ROUND: Pulsa A para continuar';
+            indicador.innerText = 'FIN DE COMBATE: Pulsa A para continuar';
             indicador.classList.remove('oculto');
             
-            roundActual++;
-            // Pasar al siguiente rival (round 3 será Carapan automáticamente)
+            // Pasar al siguiente rival
             indiceRivalActual++;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
+            
+            // Reiniciar rounds del nuevo combate
+            roundActual = 1;
+            victoriasJugador = 0;
+            victoriasRival = 0;
+            
             const titulo = document.getElementById('round-titulo');
             const mensaje = document.getElementById('round-mensaje');
-            titulo.innerText = '¡ROUND ' + roundActual + '!';
-            titulo.style.color = ganoJugador ? '#0f0' : '#f00';
-            mensaje.innerText = (ganoJugador ? '¡Ganaste el round anterior!\n' : 'Perdiste el round anterior.\n') + 
+            titulo.innerText = ganoCombate ? '¡COMBATE GANADO!' : '¡COMBATE PERDIDO!';
+            titulo.style.color = ganoCombate ? '#0f0' : '#f00';
+            mensaje.innerText = (ganoCombate ? '¡Superaste a ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '!\n' : 'Te venció ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '\n') + 
                                 'Siguiente rival: ' + rivalConfig.nombre;
             document.getElementById('pantalla-round').classList.add('visible');
         }
@@ -940,19 +975,19 @@
             const resultado = document.getElementById('resultado-final');
             if (gano) {
                 titulo.innerText = '¡CAMPEÓN!'; titulo.style.color = '#0f0';
-                resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Ganaste el combate!</p>' +
-                    '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
-                    '<p style="color: #ff0;">Derrotaste a todos tus rivales</p>';
+                resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Derrotaste a todos los rivales!</p>' +
+                    '<p style="color: #fff;">Incluido a Carapan</p>' +
+                    '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
             } else {
                 titulo.innerText = '¡DERROTADO!'; titulo.style.color = '#f00';
-                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Perdiste el combate</p>' +
-                    '<p style="color: #fff;">Victorias: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
-                    '<p style="color: #ff0;">Inténtalo de nuevo</p>';
+                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">No pudiste vencer a todos</p>' +
+                    '<p style="color: #fff;">Inténtalo de nuevo</p>';
             }
             document.getElementById('pantalla-final').classList.remove('oculto');
         }
 
         function actualizarMarcador() {
+            // Mostrar victorias del combate actual (mejor de 3)
             for (let i = 1; i <= 3; i++) document.getElementById('v-j' + i).classList.remove('ganada');
             for (let i = 1; i <= victoriasJugador; i++) document.getElementById('v-j' + i).classList.add('ganada');
         }
