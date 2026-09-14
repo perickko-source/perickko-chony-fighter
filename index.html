@@ -546,8 +546,11 @@
         function seleccionarPersonaje(num) {
             vibrarBoton();
             jugadorNum = num;
+            // Rounds 1 y 2: rivales aleatorios de los 3 seleccionables (excepto el jugador)
             rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
             rivalesDisponibles.sort(() => Math.random() - 0.5);
+            // Round 3: siempre Carapan (ID 4)
+            rivalesDisponibles.push(4);
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
@@ -612,11 +615,12 @@
         });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
-        // Daño reducido 40%
+        // Daño reducido 40%. Carapan (ID 4) añadido como jefe final.
         const PERSONAJES = {
             1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
             2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
-            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 }
+            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 },
+            4: { nombre: 'Carapan', avatar: '004.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 }
         };
 
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
@@ -628,12 +632,12 @@
         };
 
         let spriteSheets = {}, jugadorConfig, rivalConfig, jugadorNum, rivalNum;
-        let vidaJugador, vidaRival, posXJugador, posXRival, tiempo = 60;
+        let vidaJugador, vidaRival, vidaRivalMax, posXJugador, posXRival, tiempo = 60;
         let juegoActivo = false, cooldownAtaque = false;
         let estadoJugador = 'idle', estadoRival = 'idle';
         let animTimer = 0, animTimerRival = 0;
         let estaSaltando = false, estaDefendiendo = false;
-        let rivalSaltando = false; // NUEVO: control de salto del rival
+        let rivalSaltando = false;
         let roundActual = 1;
         const TOTAL_ROUNDS = 3;
         let victoriasJugador = 0, victoriasRival = 0;
@@ -644,17 +648,30 @@
                 new Promise((resolve, reject) => {
                     const img = new Image(); img.src = 'spritesheet.png';
                     img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); };
-                    img.onerror = reject;
+                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet.png'); reject(); };
                 }),
                 new Promise((resolve, reject) => {
                     const img = new Image(); img.src = 'spritesheet2.png';
                     img.onload = () => { spriteSheets[2] = img; resolve(); };
-                    img.onerror = reject;
+                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet2.png'); reject(); };
                 }),
                 new Promise((resolve, reject) => {
                     const img = new Image(); img.src = 'spritesheet3.png';
                     img.onload = () => { spriteSheets[3] = img; resolve(); };
-                    img.onerror = reject;
+                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet3.png'); reject(); };
+                }),
+                // Carapan: carga opcional (no rompe el juego si falla)
+                new Promise((resolve) => {
+                    const img = new Image(); img.src = 'spritesheet4.png';
+                    img.onload = () => { 
+                        spriteSheets[4] = img; 
+                        console.log('✅ spritesheet4.png cargado correctamente');
+                        resolve(); 
+                    };
+                    img.onerror = () => { 
+                        console.error('⚠️ No se pudo cargar spritesheet4.png - Carapan no estará disponible');
+                        resolve();
+                    };
                 })
             ]);
         }
@@ -699,7 +716,9 @@
             jugadorEl.style.left = posXJugador + 'px'; 
             rivalEl.style.left = posXRival + 'px';
             vidaJugador = jugadorConfig.vida; 
-            vidaRival = rivalConfig.vida;
+            // Rival con +40% de vida
+            vidaRivalMax = Math.round(rivalConfig.vida * 1.4);
+            vidaRival = vidaRivalMax;
             actualizarBarrasVida();
             actualizarFondo();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
@@ -771,12 +790,13 @@
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
                     estadoRival = 'idle'; animTimerRival = 0;
                 }
-                // Rival más defensivo (4%)
-                if (Math.random() < 0.04 && Math.abs(posXRival - posXJugador) < 200) {
+                // Carapan es más defensivo (5%), los demás 4%
+                const probBloqueo = (rivalNum === 4) ? 0.05 : 0.04;
+                if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
                     estadoRival = 'defensa';
                     setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
                 }
-                // NUEVO: Rival salta aleatoriamente (1% de probabilidad)
+                // Rival salta aleatoriamente (1% de probabilidad)
                 if (Math.random() < 0.01 && !rivalSaltando && estadoRival === 'idle') {
                     rivalSaltando = true;
                     estadoRival = 'saltando';
@@ -860,11 +880,12 @@
             }, duracion);
         }
 
+        // CAMBIO: Siempre se juegan los 3 rounds (Carapan es el jefe final)
         function ganarRound() {
             if (!juegoActivo) return;
             juegoActivo = false; victoriasJugador++; actualizarMarcador(); reproducirSonido('victoria');
             setTimeout(() => {
-                if (victoriasJugador >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(true);
+                if (roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(true);
                 else mostrarPantallaRound(true);
             }, 500);
         }
@@ -873,7 +894,7 @@
             if (!juegoActivo) return;
             juegoActivo = false; victoriasRival++; actualizarMarcador(); reproducirSonido('derrota');
             setTimeout(() => {
-                if (victoriasRival >= 2 || roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(false);
+                if (roundActual >= TOTAL_ROUNDS) mostrarResultadoFinal(false);
                 else mostrarPantallaRound(false);
             }, 500);
         }
@@ -885,7 +906,8 @@
             indicador.classList.remove('oculto');
             
             roundActual++;
-            indiceRivalActual = (indiceRivalActual + 1) % rivalesDisponibles.length;
+            // Pasar al siguiente rival (round 3 será Carapan automáticamente)
+            indiceRivalActual++;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
             const titulo = document.getElementById('round-titulo');
@@ -956,11 +978,15 @@
 
         function actualizarBarrasVida() {
             document.getElementById('vida-jugador').style.width = Math.max(0, (vidaJugador / jugadorConfig.vida) * 100) + '%';
-            document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / rivalConfig.vida) * 100) + '%';
+            document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / vidaRivalMax) * 100) + '%';
         }
 
         actualizarSeleccionMenu();
-        cargarSpriteSheets().then(() => console.log('Spritesheets cargados')).catch(() => console.error('Error cargando spritesheets'));
+        cargarSpriteSheets().then(() => {
+            console.log('✅ Spritesheets cargados:', Object.keys(spriteSheets).length, 'personajes');
+        }).catch((e) => {
+            console.error('❌ Error cargando spritesheets:', e);
+        });
     </script>
 </body>
 </html>
