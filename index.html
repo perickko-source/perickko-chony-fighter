@@ -562,14 +562,13 @@
 
         const teclas = {};
 
-        // ============================================================
-        // SISTEMA DE BOLA DE ENERGÍA (HADOKEN) - SIMPLIFICADO
-        // ============================================================
         const MAX_TIEMPO_ENTRE_INPUTS = 500;
         let bufferInputs = [];
         let bolasEnergia = [];
         let ultimaTeclaDireccion = null;
         let tiempoUltimaDireccion = 0;
+
+        let hadoukenImg = null;
 
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
@@ -602,9 +601,9 @@
             
             bolasEnergia.push({
                 x: posXJugador + (direccion === 1 ? 140 : -40),
-                y: 200,
-                velocidad: 10 * direccion,
-                radio: 20,
+                y: 100,
+                velocidad: 5 * direccion,
+                radio: 25,
                 activa: true
             });
 
@@ -690,18 +689,30 @@
                     estela.style.width = (bola.radio * 2 - i * 5) + 'px';
                     estela.style.height = (bola.radio * 2 - i * 5) + 'px';
                     estela.style.borderRadius = '50%';
-                    estela.style.background = `radial-gradient(circle, rgba(0,255,255,${0.3 - i * 0.1}) 0%, transparent 70%)`;
+                    estela.style.background = `radial-gradient(circle, rgba(0,255,255,${0.5 - i * 0.1}) 0%, transparent 70%)`;
                     contenedor.appendChild(estela);
                 }
                 
-                const bolaPrincipal = document.createElement('div');
-                bolaPrincipal.style.position = 'absolute';
-                bolaPrincipal.style.width = '100%';
-                bolaPrincipal.style.height = '100%';
-                bolaPrincipal.style.borderRadius = '50%';
-                bolaPrincipal.style.background = 'radial-gradient(circle, #fff 0%, #0ff 30%, #00f 70%, transparent 100%)';
-                bolaPrincipal.style.boxShadow = '0 0 20px #0ff, 0 0 40px #00f';
-                contenedor.appendChild(bolaPrincipal);
+                if (hadoukenImg && hadoukenImg.complete && hadoukenImg.naturalWidth > 0) {
+                    const img = document.createElement('img');
+                    img.src = 'hadouken.png';
+                    img.style.position = 'absolute';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.pointerEvents = 'none';
+                    img.style.filter = 'drop-shadow(0 0 8px #0ff) drop-shadow(0 0 16px #00f)';
+                    contenedor.appendChild(img);
+                } else {
+                    const bolaPrincipal = document.createElement('div');
+                    bolaPrincipal.style.position = 'absolute';
+                    bolaPrincipal.style.width = '100%';
+                    bolaPrincipal.style.height = '100%';
+                    bolaPrincipal.style.borderRadius = '50%';
+                    bolaPrincipal.style.background = 'radial-gradient(circle, #fff 0%, #0ff 40%, #00f 80%, transparent 100%)';
+                    bolaPrincipal.style.boxShadow = '0 0 15px #0ff, 0 0 30px #00f, 0 0 45px #00f';
+                    bolaPrincipal.style.border = '2px solid #0ff';
+                    contenedor.appendChild(bolaPrincipal);
+                }
                 
                 juego.appendChild(contenedor);
             });
@@ -790,8 +801,17 @@
         const ROUNDS_POR_COMBATE = 3;
         let victoriasJugador = 0, victoriasRival = 0;
         let rivalesDisponibles = [], indiceRivalActual = 0;
+        let timeoutGanarRound = null;
 
         function cargarSpriteSheets() {
+            hadoukenImg = new Image();
+            hadoukenImg.src = 'hadouken.png';
+            hadoukenImg.onload = () => { console.log('✅ hadouken.png cargado'); };
+            hadoukenImg.onerror = () => { 
+                console.error('⚠️ No se pudo cargar hadouken.png - se usará fallback CSS');
+                hadoukenImg = null;
+            };
+            
             return Promise.all([
                 new Promise((resolve, reject) => {
                     const img = new Image(); img.src = 'spritesheet.png';
@@ -816,7 +836,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet4.png');
+                        console.error('️ No se pudo cargar spritesheet4.png');
                         resolve();
                     };
                 })
@@ -843,6 +863,11 @@
         }
 
         function iniciarRound() {
+            if (timeoutGanarRound) {
+                clearTimeout(timeoutGanarRound);
+                timeoutGanarRound = null;
+            }
+            
             estadoJugador = 'idle';
             estadoRival = 'idle';
             estaSaltando = false;
@@ -1057,7 +1082,7 @@
             actualizarMarcador(); 
             reproducirSonido('victoria');
             
-            setTimeout(() => {
+            timeoutGanarRound = setTimeout(() => {
                 if (victoriasJugador >= 2) {
                     if (indiceRivalActual >= rivalesDisponibles.length - 1) {
                         mostrarResultadoFinal(true);
@@ -1078,9 +1103,8 @@
             actualizarMarcador(); 
             reproducirSonido('derrota');
             
-            setTimeout(() => {
+            timeoutGanarRound = setTimeout(() => {
                 if (victoriasRival >= 2) {
-                    // CAMBIO: Si pierdes el combate, GAME OVER directamente
                     mostrarResultadoFinal(false);
                 } else {
                     roundActual++;
@@ -1095,7 +1119,6 @@
             indicador.innerText = 'FIN DE COMBATE: Pulsa A para continuar';
             indicador.classList.remove('oculto');
             
-            // Solo avanzar al siguiente rival si ganaste
             indiceRivalActual++;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
