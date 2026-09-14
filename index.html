@@ -574,24 +574,19 @@
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
             
-            // Guardar la última tecla de dirección
             if (tecla === 'arrowleft' || tecla === 'arrowright') {
                 ultimaTeclaDireccion = tecla;
                 tiempoUltimaDireccion = ahora;
             }
             
-            // Si se pulsa A (z) y hay una dirección reciente
             if (tecla === 'z' && ultimaTeclaDireccion && (ahora - tiempoUltimaDireccion < MAX_TIEMPO_ENTRE_INPUTS)) {
-                // Verificar que no hay bola activa
                 if (bolasEnergia.length === 0 && estadoJuego === 'combate') {
-                    // Determinar si la dirección es correcta según la posición del rival
                     const rivalADerecha = posXRival > posXJugador;
                     const direccionCorrecta = (rivalADerecha && ultimaTeclaDireccion === 'arrowleft') ||
                                              (!rivalADerecha && ultimaTeclaDireccion === 'arrowright');
                     
                     if (direccionCorrecta) {
                         lanzarBolaEnergia();
-                        // Reset para evitar lanzamientos múltiples
                         ultimaTeclaDireccion = null;
                         tiempoUltimaDireccion = 0;
                     }
@@ -603,7 +598,6 @@
             estadoJugador = 'puñetazo';
             reproducirSonido('hadouken');
             
-            // Determinar dirección de la bola según la posición del rival
             const direccion = (posXRival > posXJugador) ? 1 : -1;
             
             bolasEnergia.push({
@@ -614,7 +608,6 @@
                 activa: true
             });
 
-            // CORRECCIÓN: Volver a idle después del sprite de puñetazo
             setTimeout(() => {
                 if (vidaJugador > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') {
                     estadoJugador = 'idle';
@@ -664,7 +657,6 @@
                     continue;
                 }
                 
-                // Eliminar si sale de la pantalla por cualquier lado
                 if (bola.x > 525 || bola.x < -40) {
                     bola.activa = false;
                     bolasEnergia.splice(i, 1);
@@ -1088,11 +1080,8 @@
             
             setTimeout(() => {
                 if (victoriasRival >= 2) {
-                    if (indiceRivalActual >= rivalesDisponibles.length - 1) {
-                        mostrarResultadoFinal(false);
-                    } else {
-                        mostrarPantallaCombate(false);
-                    }
+                    // CAMBIO: Si pierdes el combate, GAME OVER directamente
+                    mostrarResultadoFinal(false);
                 } else {
                     roundActual++;
                     iniciarRound();
@@ -1106,6 +1095,7 @@
             indicador.innerText = 'FIN DE COMBATE: Pulsa A para continuar';
             indicador.classList.remove('oculto');
             
+            // Solo avanzar al siguiente rival si ganaste
             indiceRivalActual++;
             rivalNum = rivalesDisponibles[indiceRivalActual];
             rivalConfig = PERSONAJES[rivalNum];
@@ -1116,9 +1106,9 @@
             
             const titulo = document.getElementById('round-titulo');
             const mensaje = document.getElementById('round-mensaje');
-            titulo.innerText = ganoCombate ? '¡COMBATE GANADO!' : '¡COMBATE PERDIDO!';
-            titulo.style.color = ganoCombate ? '#0f0' : '#f00';
-            mensaje.innerText = (ganoCombate ? '¡Superaste a ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '!\n' : 'Te venció ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '\n') + 
+            titulo.innerText = '¡COMBATE GANADO!';
+            titulo.style.color = '#0f0';
+            mensaje.innerText = '¡Superaste a ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '!\n' + 
                                 'Siguiente rival: ' + rivalConfig.nombre;
             document.getElementById('pantalla-round').classList.add('visible');
         }
@@ -1148,9 +1138,10 @@
                     '<p style="color: #fff;">Incluido a Carapan</p>' +
                     '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
             } else {
-                titulo.innerText = '¡DERROTADO!'; titulo.style.color = '#f00';
-                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">No pudiste vencer a todos</p>' +
-                    '<p style="color: #fff;">Inténtalo de nuevo</p>';
+                titulo.innerText = '¡GAME OVER!'; titulo.style.color = '#f00';
+                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Has sido derrotado</p>' +
+                    '<p style="color: #fff;">No pudiste vencer a todos los rivales</p>' +
+                    '<p style="color: #ff0;">Inténtalo de nuevo</p>';
             }
             document.getElementById('pantalla-final').classList.remove('oculto');
         }
