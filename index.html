@@ -836,7 +836,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('️ No se pudo cargar spritesheet4.png');
+                        console.error('⚠️ No se pudo cargar spritesheet4.png');
                         resolve();
                     };
                 })
@@ -950,7 +950,9 @@
                     setTimeout(() => { jugadorEl.style.bottom = '2%'; }, 300);
                     setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
                 }
-                if (moviendose && estadoJugador === 'idle') {
+                
+                // CORRECCIÓN: La animación de caminar ahora avanza correctamente
+                if (moviendose && (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                     animTimer++;
                     if (animTimer < 15) estadoJugador = 'caminar1';
                     else if (animTimer < 30) estadoJugador = 'caminar2';
