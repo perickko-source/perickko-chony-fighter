@@ -547,9 +547,11 @@
         function seleccionarPersonaje(num) {
             vibrarBoton();
             jugadorNum = num;
+            // Secuencia de combates: 2 rivales aleatorios + Carapan + Ainhoa
             rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
             rivalesDisponibles.sort(() => Math.random() - 0.5);
-            rivalesDisponibles.push(4);
+            rivalesDisponibles.push(4); // Carapan
+            rivalesDisponibles.push(5); // Ainhoa la Guerrera (jefe final)
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
@@ -775,11 +777,13 @@
         });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
+        // Ainhoa (ID 5) añadida con las mismas stats que Carapan
         const PERSONAJES = {
             1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
             2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
             3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 },
-            4: { nombre: 'Carapan', avatar: '004.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 }
+            4: { nombre: 'Carapan', avatar: '004.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 },
+            5: { nombre: 'Ainhoa la Guerrera', avatar: '005.png', spriteSheet: 'spritesheet5.png', vida: 140, velocidad: 4, daño: 9 }
         };
 
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
@@ -832,11 +836,24 @@
                     const img = new Image(); img.src = 'spritesheet4.png';
                     img.onload = () => { 
                         spriteSheets[4] = img; 
-                        console.log('✅ spritesheet4.png cargado correctamente');
+                        console.log('✅ spritesheet4.png (Carapan) cargado');
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet4.png');
+                        console.error('️ No se pudo cargar spritesheet4.png');
+                        resolve();
+                    };
+                }),
+                // NUEVO: Cargar spritesheet de Ainhoa
+                new Promise((resolve) => {
+                    const img = new Image(); img.src = 'spritesheet5.png';
+                    img.onload = () => { 
+                        spriteSheets[5] = img; 
+                        console.log('✅ spritesheet5.png (Ainhoa) cargado');
+                        resolve(); 
+                    };
+                    img.onerror = () => { 
+                        console.error('️ No se pudo cargar spritesheet5.png');
                         resolve();
                     };
                 })
@@ -951,7 +968,6 @@
                     setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
                 }
                 
-                // CORRECCIÓN: La animación de caminar ahora avanza correctamente
                 if (moviendose && (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                     animTimer++;
                     if (animTimer < 15) estadoJugador = 'caminar1';
@@ -985,7 +1001,8 @@
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
                     estadoRival = 'idle'; animTimerRival = 0;
                 }
-                const probBloqueo = (rivalNum === 4) ? 0.05 : 0.04;
+                // Ainhoa y Carapan son más defensivos (5%), los demás 4%
+                const probBloqueo = (rivalNum === 4 || rivalNum === 5) ? 0.05 : 0.04;
                 if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
                     estadoRival = 'defensa';
                     setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
@@ -1160,7 +1177,7 @@
             if (gano) {
                 titulo.innerText = '¡CAMPEÓN!'; titulo.style.color = '#0f0';
                 resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Derrotaste a todos los rivales!</p>' +
-                    '<p style="color: #fff;">Incluido a Carapan</p>' +
+                    '<p style="color: #fff;">Incluidos Carapan y Ainhoa la Guerrera</p>' +
                     '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
             } else {
                 titulo.innerText = '¡GAME OVER!'; titulo.style.color = '#f00';
