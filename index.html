@@ -168,7 +168,6 @@
             z-index: 50;
         }
 
-        /* NUEVO: Clase para Joaquín el Tanque (20% más grande) */
         .luchador.tanque {
             width: 168px;
             height: 252px;
@@ -558,6 +557,7 @@
             rivalesDisponibles.push(4);
             rivalesDisponibles.push(5);
             rivalesDisponibles.push(6);
+            rivalesDisponibles.push(7);
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
@@ -789,7 +789,8 @@
             3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 },
             4: { nombre: 'Carapan', avatar: '004.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 },
             5: { nombre: 'Ainhoa la Guerrera', avatar: '005.png', spriteSheet: 'spritesheet5.png', vida: 140, velocidad: 4, daño: 9 },
-            6: { nombre: 'Joaquín el Tanque', avatar: '006.png', spriteSheet: 'spritesheet6.png', vida: 140, velocidad: 4, daño: 9 }
+            6: { nombre: 'Joaquín el Tanque', avatar: '006.png', spriteSheet: 'spritesheet6.png', vida: 140, velocidad: 4, daño: 9 },
+            7: { nombre: 'Lia Dragón', avatar: '007.png', spriteSheet: 'spritesheet7.png', vida: 140, velocidad: 4, daño: 9 }
         };
 
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
@@ -813,14 +814,11 @@
         let rivalesDisponibles = [], indiceRivalActual = 0;
         let timeoutGanarRound = null;
 
-        // NUEVO: Función para ajustar el tamaño del luchador según el personaje
         function ajustarTamanoLuchador(quien, numPersonaje) {
             const el = document.getElementById(quien);
             if (numPersonaje === 6) {
-                // Joaquín el Tanque: 20% más grande
                 el.classList.add('tanque');
             } else {
-                // Tamaño normal
                 el.classList.remove('tanque');
             }
         }
@@ -858,7 +856,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('️ No se pudo cargar spritesheet4.png');
+                        console.error('⚠️ No se pudo cargar spritesheet4.png');
                         resolve();
                     };
                 }),
@@ -883,6 +881,18 @@
                     };
                     img.onerror = () => { 
                         console.error('⚠️ No se pudo cargar spritesheet6.png');
+                        resolve();
+                    };
+                }),
+                new Promise((resolve) => {
+                    const img = new Image(); img.src = 'spritesheet7.png';
+                    img.onload = () => { 
+                        spriteSheets[7] = img; 
+                        console.log('✅ spritesheet7.png (Lia Dragón) cargado');
+                        resolve(); 
+                    };
+                    img.onerror = () => { 
+                        console.error('⚠️ No se pudo cargar spritesheet7.png');
                         resolve();
                     };
                 })
@@ -945,7 +955,6 @@
             jugadorEl.classList.remove('oculto'); 
             rivalEl.classList.remove('oculto');
             
-            // NUEVO: Ajustar tamaño según el personaje
             ajustarTamanoLuchador('jugador', jugadorNum);
             ajustarTamanoLuchador('rival', rivalNum);
             
@@ -1209,7 +1218,7 @@
             if (gano) {
                 titulo.innerText = '¡CAMPEÓN!'; titulo.style.color = '#0f0';
                 resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Derrotaste a todos los rivales!</p>' +
-                    '<p style="color: #fff;">Incluidos Carapan, Ainhoa y Joaquín el Tanque</p>' +
+                    '<p style="color: #fff;">Incluidos Carapan, Ainhoa, Joaquín y Lia Dragón</p>' +
                     '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
             } else {
                 titulo.innerText = '¡GAME OVER!'; titulo.style.color = '#f00';
