@@ -369,7 +369,7 @@
         #btn-select { top: 875px; left: 209px; width: 85px; height: 45px; }
         #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
 
-        /* NUEVOS: Botones diagonales calibrados */
+        /* Botones diagonales calibrados */
         #btn-diag-up-left { top: 608px; left: 63px; width: 50px; height: 50px; }
         #btn-diag-up-right { top: 606px; left: 190px; width: 50px; height: 50px; }
         #btn-diag-down-left { top: 735px; left: 64px; width: 50px; height: 50px; }
@@ -468,7 +468,7 @@
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
             <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
             
-            <!-- NUEVOS: Botones diagonales -->
+            <!-- Botones diagonales -->
             <div id="btn-diag-up-left" class="boton-tactil" data-tecla="diagonalupleft"></div>
             <div id="btn-diag-up-right" class="boton-tactil" data-tecla="diagonalupright"></div>
             <div id="btn-diag-down-left" class="boton-tactil" data-tecla="diagonaldownleft"></div>
@@ -602,7 +602,6 @@
             const ahora = Date.now();
             
             if (tecla === 'arrowleft' || tecla === 'arrowright' || tecla === 'diagonalupleft' || tecla === 'diagonalupright') {
-                // Para el hadouken, solo usamos las direcciones puras
                 if (tecla === 'arrowleft' || tecla === 'arrowright') {
                     ultimaTeclaDireccion = tecla;
                     tiempoUltimaDireccion = ahora;
@@ -924,7 +923,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet5.png');
+                        console.error('️ No se pudo cargar spritesheet5.png');
                         resolve();
                     };
                 }),
@@ -936,7 +935,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet6.png');
+                        console.error('️ No se pudo cargar spritesheet6.png');
                         resolve();
                     };
                 }),
@@ -1053,9 +1052,9 @@
             const jugadorCanvas = document.querySelector('#jugador canvas');
             const rivalCanvas = document.querySelector('#rival canvas');
             
-            // NUEVO: Detectar direcciones incluyendo diagonales
-            const pulsadoArriba = teclas['arrowup'] || teclas['diagonalupleft'] || teclas['diagonalupright'];
-            const pulsadoAbajo = teclas['arrowdown'] || teclas['diagonaldownleft'] || teclas['diagonaldownright'];
+            // ✅ CAMBIO INTEGRADO: Arriba/Abajo usan teclasPulsadas (una acción por toque), Izq/Der usan teclas (movimiento continuo)
+            const pulsadoArriba = teclasPulsadas['arrowup'] || teclasPulsadas['diagonalupleft'] || teclasPulsadas['diagonalupright'];
+            const pulsadoAbajo = teclasPulsadas['arrowdown'] || teclasPulsadas['diagonaldownleft'] || teclasPulsadas['diagonaldownright'];
             const pulsadoIzquierda = teclas['arrowleft'] || teclas['diagonalupleft'] || teclas['diagonaldownleft'];
             const pulsadoDerecha = teclas['arrowright'] || teclas['diagonalupright'] || teclas['diagonaldownright'];
             
@@ -1064,11 +1063,9 @@
             else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
             
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
-                // Movimiento horizontal (usa diagonales también)
                 if (pulsadoIzquierda && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
                 if (pulsadoDerecha && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
                 
-                // Salto (normal o diagonal)
                 if (pulsadoArriba && !estaSaltando && estadoJugador === 'idle') {
                     estaSaltando = true;
                     estadoJugador = 'saltando';
