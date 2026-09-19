@@ -568,8 +568,9 @@
             iniciarRound();
         }
 
-const teclas = {};
-const teclasPulsadas = {}; // NUEVO: detecta cuando se pulsa una tecla
+        // ✅ CORREGIDO: Eliminada la línea duplicada
+        const teclas = {};
+        const teclasPulsadas = {};
 
         const MAX_TIEMPO_ENTRE_INPUTS = 500;
         let bufferInputs = [];
@@ -767,40 +768,55 @@ const teclasPulsadas = {}; // NUEVO: detecta cuando se pulsa una tecla
             if (tecla === 'z' || tecla === 'start') location.reload();
         }
 
+        // ✅ CORREGIDO: Añadido { passive: false } para que el móvil detecte varios dedos a la vez
         document.querySelectorAll('.boton-tactil').forEach(btn => {
             const tecla = btn.dataset.tecla;
-btn.addEventListener('touchstart', (e) => { 
-    e.preventDefault(); 
-    if (!teclas[tecla]) {
-        teclasPulsadas[tecla] = true;
-    }
-    activarTecla(tecla); 
-    btn.classList.add('activo'); 
-});
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
-            btn.addEventListener('touchcancel', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
-btn.addEventListener('mousedown', (e) => { 
-    e.preventDefault(); 
-    if (!teclas[tecla]) {
-        teclasPulsadas[tecla] = true;
-    }
-    activarTecla(tecla); 
-    btn.classList.add('activo'); 
-});
-            btn.addEventListener('mouseup', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
-            btn.addEventListener('mouseleave', () => { desactivarTecla(tecla); btn.classList.remove('activo'); });
+            
+            btn.addEventListener('touchstart', (e) => { 
+                e.preventDefault(); 
+                if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
+                activarTecla(tecla); 
+                btn.classList.add('activo'); 
+            }, { passive: false });
+            
+            btn.addEventListener('touchend', (e) => { 
+                e.preventDefault(); 
+                desactivarTecla(tecla); 
+                btn.classList.remove('activo'); 
+            }, { passive: false });
+            
+            btn.addEventListener('touchcancel', (e) => { 
+                e.preventDefault(); 
+                desactivarTecla(tecla); 
+                btn.classList.remove('activo'); 
+            }, { passive: false });
+            
+            btn.addEventListener('mousedown', (e) => { 
+                e.preventDefault(); 
+                if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
+                activarTecla(tecla); 
+                btn.classList.add('activo'); 
+            });
+            
+            btn.addEventListener('mouseup', (e) => { 
+                e.preventDefault(); 
+                desactivarTecla(tecla); 
+                btn.classList.remove('activo'); 
+            });
+            
+            btn.addEventListener('mouseleave', () => { 
+                desactivarTecla(tecla); 
+                btn.classList.remove('activo'); 
+            });
         });
 
-document.addEventListener('keydown', (e) => { 
-    const tecla = e.key.toLowerCase();
-    // Solo marcar como "pulsada" si no estaba ya pulsada (detectar flanco de subida)
-    if (!teclas[tecla]) {
-        teclasPulsadas[tecla] = true;
-    }
-    teclas[tecla] = true; 
-    e.preventDefault(); 
-    activarTecla(tecla);
-});
+        document.addEventListener('keydown', (e) => { 
+            const tecla = e.key.toLowerCase();
+            if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
+            teclas[tecla] = true; 
+            e.preventDefault(); 
+            activarTecla(tecla);
+        });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
         const PERSONAJES = {
@@ -1022,37 +1038,34 @@ document.addEventListener('keydown', (e) => {
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
                 if (teclas['arrowleft'] && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
                 if (teclas['arrowright'] && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
-if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
-    estaSaltando = true;
-    estadoJugador = 'saltando';
-    const jugadorEl = document.getElementById('jugador');
-    jugadorEl.style.bottom = 'calc(2% + 50px)';
-    
-    // Detectar dirección del salto diagonal
-    let direccionSalto = 0;
-    if (teclas['arrowleft']) direccionSalto = -1;
-    else if (teclas['arrowright']) direccionSalto = 1;
-    
-    // Aplicar movimiento horizontal durante el salto si es diagonal
-    if (direccionSalto !== 0) {
-        const intervaloSalto = setInterval(() => {
-            if (!estaSaltando) {
-                clearInterval(intervaloSalto);
-                return;
-            }
-            posXJugador += direccionSalto * jugadorConfig.velocidad;
-            // Limitar a los bordes de la pantalla
-            if (posXJugador < 0) posXJugador = 0;
-            if (posXJugador > 385) posXJugador = 385;
-        }, 16); // ~60fps
-    }
-    
-    setTimeout(() => { jugadorEl.style.bottom = '2%'; }, 300);
-    setTimeout(() => { 
-        estaSaltando = false; 
-        if (vidaJugador > 0) estadoJugador = 'idle'; 
-    }, 600);
-}
+                if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
+                    estaSaltando = true;
+                    estadoJugador = 'saltando';
+                    const jugadorEl = document.getElementById('jugador');
+                    jugadorEl.style.bottom = 'calc(2% + 50px)';
+                    
+                    let direccionSalto = 0;
+                    if (teclas['arrowleft']) direccionSalto = -1;
+                    else if (teclas['arrowright']) direccionSalto = 1;
+                    
+                    if (direccionSalto !== 0) {
+                        const intervaloSalto = setInterval(() => {
+                            if (!estaSaltando) {
+                                clearInterval(intervaloSalto);
+                                return;
+                            }
+                            posXJugador += direccionSalto * jugadorConfig.velocidad;
+                            if (posXJugador < 0) posXJugador = 0;
+                            if (posXJugador > 385) posXJugador = 385;
+                        }, 16);
+                    }
+                    
+                    setTimeout(() => { jugadorEl.style.bottom = '2%'; }, 300);
+                    setTimeout(() => { 
+                        estaSaltando = false; 
+                        if (vidaJugador > 0) estadoJugador = 'idle'; 
+                    }, 600);
+                }
                 
                 if (moviendose && (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                     animTimer++;
@@ -1068,18 +1081,18 @@ if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
             const mirarDerechaJugador = posXRival > posXJugador;
             const frameJugador = ANIMACIONES[estadoJugador];
             dibujarFrame(jugadorCanvas, spriteSheets[jugadorNum], frameJugador[0], frameJugador[1], !mirarDerechaJugador);
-// Ataques normales (en el suelo)
-if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' &&
-    (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
-    if (teclasPulsadas['z']) atacar('puñetazo', jugadorConfig.daño, 300);
-    else if (teclasPulsadas['x']) atacar('patada', jugadorConfig.daño * 1.5, 400);
-    else if (teclasPulsadas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
-}
+            
+            if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' &&
+                (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
+                if (teclasPulsadas['z']) atacar('puñetazo', jugadorConfig.daño, 300);
+                else if (teclasPulsadas['x']) atacar('patada', jugadorConfig.daño * 1.5, 400);
+                else if (teclasPulsadas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
+            }
 
-// Patada en el aire (durante el salto)
-if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) {
-    atacar('patada', jugadorConfig.daño * 1.2, 400);
-}
+            if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) {
+                atacar('patada', jugadorConfig.daño * 1.2, 400);
+            }
+            
             let moviendoseRival = false;
             if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
                 estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
@@ -1125,10 +1138,9 @@ if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) {
             actualizarBolasEnergia();
             dibujarBolasEnergia();
             
-            // Limpiar las teclas pulsadas para el siguiente frame
-for (let tecla in teclasPulsadas) {
-    delete teclasPulsadas[tecla];
-}
+            for (let tecla in teclasPulsadas) {
+                delete teclasPulsadas[tecla];
+            }
             requestAnimationFrame(bucleJuego);
         }
 
