@@ -350,6 +350,10 @@
             z-index: 1000;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .boton-tactil:active { opacity: 0.3; }
@@ -364,6 +368,12 @@
         #btn-b { top: 734px; left: 395px; width: 75px; height: 75px; }
         #btn-select { top: 875px; left: 209px; width: 85px; height: 45px; }
         #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
+
+        /* NUEVOS: Botones diagonales calibrados */
+        #btn-diag-up-left { top: 608px; left: 63px; width: 50px; height: 50px; }
+        #btn-diag-up-right { top: 606px; left: 190px; width: 50px; height: 50px; }
+        #btn-diag-down-left { top: 735px; left: 64px; width: 50px; height: 50px; }
+        #btn-diag-down-right { top: 736px; left: 190px; width: 50px; height: 50px; }
 
         .boton-tactil.activo { opacity: 0.3; }
 
@@ -452,14 +462,23 @@
                 </div>
             </div>
 
+            <!-- Botones de dirección -->
             <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
             <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
             <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
-            <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
-            <div id="btn-b" class="boton-tactil" data-tecla="x"></div>
+            
+            <!-- NUEVOS: Botones diagonales -->
+            <div id="btn-diag-up-left" class="boton-tactil" data-tecla="diagonalupleft"></div>
+            <div id="btn-diag-up-right" class="boton-tactil" data-tecla="diagonalupright"></div>
+            <div id="btn-diag-down-left" class="boton-tactil" data-tecla="diagonaldownleft"></div>
+            <div id="btn-diag-down-right" class="boton-tactil" data-tecla="diagonaldownright"></div>
+            
+            <!-- Botones de acción -->
             <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
             <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
+            <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
+            <div id="btn-b" class="boton-tactil" data-tecla="x"></div>
             <div id="btn-select" class="boton-tactil" data-tecla="select"></div>
             <div id="btn-start" class="boton-tactil" data-tecla="start"></div>
         </div>
@@ -568,7 +587,6 @@
             iniciarRound();
         }
 
-        // ✅ CORREGIDO: Eliminada la línea duplicada
         const teclas = {};
         const teclasPulsadas = {};
 
@@ -583,9 +601,12 @@
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
             
-            if (tecla === 'arrowleft' || tecla === 'arrowright') {
-                ultimaTeclaDireccion = tecla;
-                tiempoUltimaDireccion = ahora;
+            if (tecla === 'arrowleft' || tecla === 'arrowright' || tecla === 'diagonalupleft' || tecla === 'diagonalupright') {
+                // Para el hadouken, solo usamos las direcciones puras
+                if (tecla === 'arrowleft' || tecla === 'arrowright') {
+                    ultimaTeclaDireccion = tecla;
+                    tiempoUltimaDireccion = ahora;
+                }
             }
             
             if (tecla === 'z' && ultimaTeclaDireccion && (ahora - tiempoUltimaDireccion < MAX_TIEMPO_ENTRE_INPUTS)) {
@@ -768,7 +789,6 @@
             if (tecla === 'z' || tecla === 'start') location.reload();
         }
 
-        // ✅ CORREGIDO: Añadido { passive: false } para que el móvil detecte varios dedos a la vez
         document.querySelectorAll('.boton-tactil').forEach(btn => {
             const tecla = btn.dataset.tecla;
             
@@ -1032,21 +1052,32 @@
             if (!juegoActivo) return;
             const jugadorCanvas = document.querySelector('#jugador canvas');
             const rivalCanvas = document.querySelector('#rival canvas');
+            
+            // NUEVO: Detectar direcciones incluyendo diagonales
+            const pulsadoArriba = teclas['arrowup'] || teclas['diagonalupleft'] || teclas['diagonalupright'];
+            const pulsadoAbajo = teclas['arrowdown'] || teclas['diagonaldownleft'] || teclas['diagonaldownright'];
+            const pulsadoIzquierda = teclas['arrowleft'] || teclas['diagonalupleft'] || teclas['diagonaldownleft'];
+            const pulsadoDerecha = teclas['arrowright'] || teclas['diagonalupright'] || teclas['diagonaldownright'];
+            
             let moviendose = false;
             if (teclas['v'] && estadoJugador === 'idle') { estaDefendiendo = true; estadoJugador = 'defensa'; }
             else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
+            
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
-                if (teclas['arrowleft'] && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
-                if (teclas['arrowright'] && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
-                if (teclas['arrowup'] && !estaSaltando && estadoJugador === 'idle') {
+                // Movimiento horizontal (usa diagonales también)
+                if (pulsadoIzquierda && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
+                if (pulsadoDerecha && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
+                
+                // Salto (normal o diagonal)
+                if (pulsadoArriba && !estaSaltando && estadoJugador === 'idle') {
                     estaSaltando = true;
                     estadoJugador = 'saltando';
                     const jugadorEl = document.getElementById('jugador');
                     jugadorEl.style.bottom = 'calc(2% + 50px)';
                     
                     let direccionSalto = 0;
-                    if (teclas['arrowleft']) direccionSalto = -1;
-                    else if (teclas['arrowright']) direccionSalto = 1;
+                    if (pulsadoIzquierda) direccionSalto = -1;
+                    else if (pulsadoDerecha) direccionSalto = 1;
                     
                     if (direccionSalto !== 0) {
                         const intervaloSalto = setInterval(() => {
@@ -1076,6 +1107,7 @@
                     estadoJugador = 'idle'; animTimer = 0;
                 }
             }
+            
             document.getElementById('jugador').style.left = posXJugador + 'px';
             actualizarFondo();
             const mirarDerechaJugador = posXRival > posXJugador;
