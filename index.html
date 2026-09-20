@@ -154,10 +154,16 @@
             border: 1px solid #666;
         }
 
-        .victoria-dot.ganada {
+        .victoria-dot.ganada-jugador {
             background: #0f0;
             border-color: #0f0;
             box-shadow: 0 0 5px #0f0;
+        }
+
+        .victoria-dot.ganada-rival {
+            background: #f00;
+            border-color: #f00;
+            box-shadow: 0 0 5px #f00;
         }
 
         .luchador {
@@ -168,6 +174,10 @@
             z-index: 50;
         }
 
+        #jugador {
+            z-index: 60;
+        }
+
         .luchador.tanque {
             width: 168px;
             height: 252px;
@@ -176,6 +186,7 @@
         .luchador canvas {
             width: 100%;
             height: 100%;
+            transition: filter 0.1s ease-out;
         }
 
         .efecto-golpe {
@@ -369,7 +380,6 @@
         #btn-select { top: 875px; left: 209px; width: 85px; height: 45px; }
         #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
 
-        /* Botones diagonales calibrados */
         #btn-diag-up-left { top: 608px; left: 63px; width: 50px; height: 50px; }
         #btn-diag-up-right { top: 606px; left: 190px; width: 50px; height: 50px; }
         #btn-diag-down-left { top: 735px; left: 64px; width: 50px; height: 50px; }
@@ -414,6 +424,9 @@
                                 <div class="victoria-dot" id="v-j1"></div>
                                 <div class="victoria-dot" id="v-j2"></div>
                                 <div class="victoria-dot" id="v-j3"></div>
+                                <div class="victoria-dot" id="v-r1"></div>
+                                <div class="victoria-dot" id="v-r2"></div>
+                                <div class="victoria-dot" id="v-r3"></div>
                             </div>
                         </div>
                         <div class="barra-vida-container">
@@ -462,19 +475,16 @@
                 </div>
             </div>
 
-            <!-- Botones de dirección -->
             <div id="btn-up" class="boton-tactil" data-tecla="arrowup"></div>
             <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
             <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
             
-            <!-- Botones diagonales -->
             <div id="btn-diag-up-left" class="boton-tactil" data-tecla="diagonalupleft"></div>
             <div id="btn-diag-up-right" class="boton-tactil" data-tecla="diagonalupright"></div>
             <div id="btn-diag-down-left" class="boton-tactil" data-tecla="diagonaldownleft"></div>
             <div id="btn-diag-down-right" class="boton-tactil" data-tecla="diagonaldownright"></div>
             
-            <!-- Botones de acción -->
             <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
             <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
             <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
@@ -514,13 +524,16 @@
             patada: new Audio('patada.mp3'),
             especial: new Audio('especial.mp3'),
             hadouken: new Audio('hadouken.mp3'),
+            hadouken2: new Audio('hadouken2.mp3'),
             bloqueo: new Audio('bloqueo.mp3'),
             ko: new Audio('ko.mp3'),
             inicioround: new Audio('inicioround.mp3'),
             victoria: new Audio('victoria.mp3'),
             derrota: new Audio('derrota.mp3'),
             menu: new Audio('menu.mp3'),
-            seleccion: new Audio('seleccion.mp3')
+            seleccion: new Audio('seleccion.mp3'),
+            silbido: new Audio('silbido.mp3'),
+            perrito: new Audio('perrito.mp3')
         };
 
         Object.values(sonidos).forEach(s => s.volume = 0.7);
@@ -597,15 +610,34 @@
         let tiempoUltimaDireccion = 0;
 
         let hadoukenImg = null;
+        let perroSpriteSheet = null;
+        const PERRO_FRAME_WIDTH = 204;
+        const PERRO_FRAME_HEIGHT = 340;
+
+        let perrosActivos = [];
+        let intervalosSonidoPerro = [];
+        let perrosInvocadosEnRound = 0;
+        const MAX_PERROS_POR_ROUND = 2;
+        const PROBABILIDAD_PERRO = 0.003;
+        const VELOCIDAD_PERRO = 4;
+        const RIVALES_CON_PERRO = [5, 7];
+
+        const RETROCESO = {
+            puñetazo: 10,
+            patada: 18,
+            especial: 30,
+            hadouken: 25
+        };
+
+        let timerIntervalActual = null;
+        let roundTerminado = false;
 
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
             
-            if (tecla === 'arrowleft' || tecla === 'arrowright' || tecla === 'diagonalupleft' || tecla === 'diagonalupright') {
-                if (tecla === 'arrowleft' || tecla === 'arrowright') {
-                    ultimaTeclaDireccion = tecla;
-                    tiempoUltimaDireccion = ahora;
-                }
+            if (tecla === 'arrowleft' || tecla === 'arrowright') {
+                ultimaTeclaDireccion = tecla;
+                tiempoUltimaDireccion = ahora;
             }
             
             if (tecla === 'z' && ultimaTeclaDireccion && (ahora - tiempoUltimaDireccion < MAX_TIEMPO_ENTRE_INPUTS)) {
@@ -633,7 +665,11 @@
                 x: posXJugador + (direccion === 1 ? 140 : -40),
                 y: 100,
                 velocidad: 5 * direccion,
-                radio: 25,
+                radio: 40,
+                direccion: direccion,
+                impacto: false,
+                esRival: false,
+                tipo: 'hadouken',
                 activa: true
             });
 
@@ -644,6 +680,55 @@
             }, 300);
         }
 
+        function lanzarHadoukenRival() {
+            const bolasRivalActivas = bolasEnergia.filter(b => b.esRival && b.activa).length;
+            if (bolasRivalActivas > 0) return;
+            
+            const probabilidad = HADOUKEN_RIVAL[rivalNum] || 0.001;
+            if (Math.random() > probabilidad) return;
+            
+            if (Math.abs(posXRival - posXJugador) < 100) return;
+            
+            const direccion = (posXJugador > posXRival) ? 1 : -1;
+            
+            bolasEnergia.push({
+                x: posXRival + (direccion === 1 ? 140 : -40),
+                y: 100,
+                velocidad: 5 * direccion,
+                radio: 40,
+                direccion: direccion,
+                impacto: false,
+                esRival: true,
+                tipo: 'hadouken',
+                activa: true
+            });
+            
+            // NUEVO: Sonido diferente según el rival
+            if (rivalNum === 4 || rivalNum === 6 || rivalNum === 7) {
+                reproducirSonido('hadouken2');
+            } else {
+                reproducirSonido('hadouken');
+            }
+        }
+
+        function aplicarRetrocesoRival(tipo) {
+            const retroceso = RETROCESO[tipo] || 10;
+            const direccion = posXRival > posXJugador ? 1 : -1;
+            posXRival += direccion * retroceso;
+            if (posXRival < 0) posXRival = 0;
+            if (posXRival > 385) posXRival = 385;
+            document.getElementById('rival').style.left = posXRival + 'px';
+        }
+
+        function aplicarRetrocesoJugador(tipo) {
+            const retroceso = RETROCESO[tipo] || 10;
+            const direccion = posXJugador > posXRival ? 1 : -1;
+            posXJugador += direccion * retroceso;
+            if (posXJugador < 0) posXJugador = 0;
+            if (posXJugador > 385) posXJugador = 385;
+            document.getElementById('jugador').style.left = posXJugador + 'px';
+        }
+
         function actualizarBolasEnergia() {
             for (let i = bolasEnergia.length - 1; i >= 0; i--) {
                 const bola = bolasEnergia[i];
@@ -652,38 +737,104 @@
                     continue;
                 }
                 
-                bola.x += bola.velocidad;
+                if (!bola.impacto) {
+                    bola.x += bola.velocidad;
+                }
                 
-                const distanciaX = Math.abs(bola.x - (posXRival + 70));
-                const distanciaY = Math.abs(bola.y - 100);
+                if (!bola.esRival) {
+                    const distanciaX = Math.abs(bola.x - (posXRival + 70));
+                    const distanciaY = Math.abs(bola.y - 100);
+                    
+                    if (!bola.impacto && distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
+                        let dañoFinal = 15;
+                        if (estadoRival === 'defensa') {
+                            dañoFinal = dañoFinal * 0.2;
+                            mostrarEfectoGolpe(posXRival, 'BLOQ');
+                            reproducirSonido('bloqueo');
+                        } else {
+                            estadoRival = 'golpeado';
+                            mostrarEfectoGolpe(posXRival, 'especial');
+                            const rivalEl = document.getElementById('rival');
+                            rivalEl.style.filter = 'brightness(3) drop-shadow(0 0 20px #0ff)';
+                            setTimeout(() => {
+                                rivalEl.style.filter = '';
+                            }, 400);
+                            aplicarRetrocesoRival('hadouken');
+                        }
+                        vidaRival -= dañoFinal;
+                        actualizarBarrasVida();
+                        
+                        setTimeout(() => {
+                            if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle';
+                        }, 300);
+                        
+                        if (vidaRival <= 0 && !roundTerminado) {
+                            roundTerminado = true;
+                            estadoRival = 'derrotado';
+                            dibujarDerrotado('rival');
+                            reproducirSonido('ko');
+                            setTimeout(() => { ganarRound(); }, 2000);
+                        }
+                        
+                        bola.impacto = true;
+                        bola.velocidad = 0;
+                        
+                        setTimeout(() => {
+                            bola.activa = false;
+                        }, 400);
+                        
+                        continue;
+                    }
+                }
                 
-                if (distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
-                    let dañoFinal = 15;
-                    if (estadoRival === 'defensa') {
-                        dañoFinal = dañoFinal * 0.2;
-                        mostrarEfectoGolpe(posXRival, 'BLOQ');
-                        reproducirSonido('bloqueo');
-                    } else {
-                        estadoRival = 'golpeado';
-                        mostrarEfectoGolpe(posXRival, 'especial');
+                if (bola.esRival) {
+                    const distanciaX = Math.abs(bola.x - (posXJugador + 70));
+                    const distanciaY = Math.abs(bola.y - 100);
+                    
+                    if (!bola.impacto && distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
+                        if (estaSaltando) {
+                            // Esquiva
+                        } else {
+                            let dañoFinal = 15;
+                            if (estaDefendiendo) {
+                                dañoFinal = dañoFinal * 0.2;
+                                mostrarEfectoGolpe(posXJugador, 'BLOQ');
+                                reproducirSonido('bloqueo');
+                            } else {
+                                estadoJugador = 'golpeado';
+                                mostrarEfectoGolpe(posXJugador, 'especial');
+                                const jugadorEl = document.getElementById('jugador');
+                                jugadorEl.style.filter = 'brightness(3) drop-shadow(0 0 20px #f00)';
+                                setTimeout(() => {
+                                    jugadorEl.style.filter = '';
+                                }, 400);
+                                aplicarRetrocesoJugador('hadouken');
+                            }
+                            vidaJugador -= dañoFinal;
+                            actualizarBarrasVida();
+                            
+                            setTimeout(() => {
+                                if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle';
+                            }, 300);
+                            
+                            if (vidaJugador <= 0 && !roundTerminado) {
+                                roundTerminado = true;
+                                estadoJugador = 'derrotado';
+                                dibujarDerrotado('jugador');
+                                reproducirSonido('ko');
+                                setTimeout(() => { perderRound(); }, 2000);
+                            }
+                            
+                            bola.impacto = true;
+                            bola.velocidad = 0;
+                            
+                            setTimeout(() => {
+                                bola.activa = false;
+                            }, 400);
+                            
+                            continue;
+                        }
                     }
-                    vidaRival -= dañoFinal;
-                    actualizarBarrasVida();
-                    
-                    setTimeout(() => {
-                        if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle';
-                    }, 300);
-                    
-                    if (vidaRival <= 0) {
-                        estadoRival = 'derrotado';
-                        dibujarDerrotado('rival');
-                        reproducirSonido('ko');
-                        setTimeout(() => { ganarRound(); }, 2000);
-                    }
-                    
-                    bola.activa = false;
-                    bolasEnergia.splice(i, 1);
-                    continue;
                 }
                 
                 if (bola.x > 525 || bola.x < -40) {
@@ -710,16 +861,20 @@
                 contenedor.style.zIndex = '150';
                 contenedor.style.pointerEvents = 'none';
                 
+                if (bola.direccion === -1) {
+                    contenedor.style.transform = 'scaleX(-1)';
+                }
+                
                 for (let i = 3; i >= 1; i--) {
                     const estela = document.createElement('div');
                     estela.style.position = 'absolute';
-                    estela.style.left = (-i * 15) + 'px';
+                    estela.style.left = (-i * 20) + 'px';
                     estela.style.top = '50%';
                     estela.style.transform = 'translateY(-50%)';
-                    estela.style.width = (bola.radio * 2 - i * 5) + 'px';
-                    estela.style.height = (bola.radio * 2 - i * 5) + 'px';
+                    estela.style.width = (bola.radio * 2 - i * 8) + 'px';
+                    estela.style.height = (bola.radio * 2 - i * 8) + 'px';
                     estela.style.borderRadius = '50%';
-                    estela.style.background = `radial-gradient(circle, rgba(0,255,255,${0.5 - i * 0.1}) 0%, transparent 70%)`;
+                    estela.style.background = `radial-gradient(circle, rgba(0,255,255,${0.6 - i * 0.15}) 0%, transparent 70%)`;
                     contenedor.appendChild(estela);
                 }
                 
@@ -730,7 +885,7 @@
                     img.style.width = '100%';
                     img.style.height = '100%';
                     img.style.pointerEvents = 'none';
-                    img.style.filter = 'drop-shadow(0 0 8px #0ff) drop-shadow(0 0 16px #00f)';
+                    img.style.filter = 'drop-shadow(0 0 12px #0ff) drop-shadow(0 0 24px #00f) drop-shadow(0 0 36px #00f)';
                     contenedor.appendChild(img);
                 } else {
                     const bolaPrincipal = document.createElement('div');
@@ -738,12 +893,162 @@
                     bolaPrincipal.style.width = '100%';
                     bolaPrincipal.style.height = '100%';
                     bolaPrincipal.style.borderRadius = '50%';
-                    bolaPrincipal.style.background = 'radial-gradient(circle, #fff 0%, #0ff 40%, #00f 80%, transparent 100%)';
-                    bolaPrincipal.style.boxShadow = '0 0 15px #0ff, 0 0 30px #00f, 0 0 45px #00f';
-                    bolaPrincipal.style.border = '2px solid #0ff';
+                    bolaPrincipal.style.background = 'radial-gradient(circle, #fff 0%, #0ff 30%, #00f 70%, transparent 100%)';
+                    bolaPrincipal.style.boxShadow = '0 0 20px #0ff, 0 0 40px #00f, 0 0 60px #00f, inset 0 0 20px #fff';
+                    bolaPrincipal.style.border = '3px solid #0ff';
                     contenedor.appendChild(bolaPrincipal);
                 }
                 
+                juego.appendChild(contenedor);
+            });
+        }
+
+        function invocarPerro() {
+            if (!RIVALES_CON_PERRO.includes(rivalNum)) return;
+            if (perrosInvocadosEnRound >= MAX_PERROS_POR_ROUND) return;
+            if (Math.random() > PROBABILIDAD_PERRO) return;
+            if (perrosActivos.length > 0) return;
+            
+            perrosInvocadosEnRound++;
+            reproducirSonido('silbido');
+            
+            const direccion = (posXRival > posXJugador) ? -1 : 1;
+            const xInicial = direccion === -1 ? 525 : -100;
+            
+            setTimeout(() => {
+                perrosActivos.push({
+                    x: xInicial,
+                    y: 20,
+                    velocidad: VELOCIDAD_PERRO * direccion,
+                    frame: 0,
+                    frameTimer: 0,
+                    activa: true,
+                    haGolpeado: false,
+                    sonidoLoop: null
+                });
+                
+                const perroActual = perrosActivos[perrosActivos.length - 1];
+                const intervaloId = setInterval(() => {
+                    if (perroActual.activa) {
+                        reproducirSonido('perrito');
+                    } else {
+                        clearInterval(intervaloId);
+                    }
+                }, 800);
+                perroActual.sonidoLoop = intervaloId;
+                intervalosSonidoPerro.push(intervaloId);
+                
+            }, 500);
+        }
+
+        function actualizarPerros() {
+            for (let i = perrosActivos.length - 1; i >= 0; i--) {
+                const perro = perrosActivos[i];
+                if (!perro.activa) {
+                    if (perro.sonidoLoop) clearInterval(perro.sonidoLoop);
+                    perrosActivos.splice(i, 1);
+                    continue;
+                }
+                
+                perro.x += perro.velocidad;
+                
+                perro.frameTimer++;
+                if (perro.frameTimer >= 8) {
+                    perro.frame = (perro.frame + 1) % 10;
+                    perro.frameTimer = 0;
+                }
+                
+                const distanciaX = Math.abs(perro.x - (posXJugador + 70));
+                const distanciaY = Math.abs(perro.y - 50);
+                
+                if (distanciaX < 80 && distanciaY < 100 && !perro.haGolpeado) {
+                    if (estaSaltando) {
+                        // Esquiva
+                    } else {
+                        let dañoFinal = 10;
+                        if (estaDefendiendo) {
+                            dañoFinal = 2;
+                            mostrarEfectoGolpe(posXJugador, 'BLOQ');
+                            reproducirSonido('bloqueo');
+                        } else {
+                            estadoJugador = 'golpeado';
+                            mostrarEfectoGolpe(posXJugador, 'puñetazo');
+                            reproducirSonido('puñetazo');
+                            aplicarRetrocesoJugador('patada');
+                        }
+                        vidaJugador -= dañoFinal;
+                        actualizarBarrasVida();
+                        
+                        setTimeout(() => {
+                            if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle';
+                        }, 300);
+                        
+                        if (vidaJugador <= 0 && !roundTerminado) {
+                            roundTerminado = true;
+                            estadoJugador = 'derrotado';
+                            dibujarDerrotado('jugador');
+                            reproducirSonido('ko');
+                            setTimeout(() => { perderRound(); }, 2000);
+                        }
+                        perro.haGolpeado = true;
+                    }
+                }
+                
+                if (perro.velocidad < 0 && perro.x < -100) {
+                    perro.activa = false;
+                } else if (perro.velocidad > 0 && perro.x > 600) {
+                    perro.activa = false;
+                }
+            }
+        }
+
+        function dibujarPerros() {
+            const juego = document.getElementById('juego');
+            document.querySelectorAll('.perro-activo').forEach(el => el.remove());
+            
+            if (!perroSpriteSheet) return;
+            
+            perrosActivos.forEach(perro => {
+                if (!perro.activa) return;
+                
+                const contenedor = document.createElement('div');
+                contenedor.className = 'perro-activo';
+                contenedor.style.position = 'absolute';
+                contenedor.style.left = perro.x + 'px';
+                contenedor.style.bottom = perro.y + 'px';
+                contenedor.style.width = '100px';
+                contenedor.style.height = '150px';
+                contenedor.style.zIndex = '140';
+                contenedor.style.pointerEvents = 'none';
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 150;
+                
+                const ctx = canvas.getContext('2d');
+                const fila = Math.floor(perro.frame / 5);
+                const columna = perro.frame % 5;
+                
+                const voltear = perro.velocidad > 0;
+                
+                ctx.save();
+                if (voltear) {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+                ctx.drawImage(
+                    perroSpriteSheet,
+                    columna * PERRO_FRAME_WIDTH,
+                    fila * PERRO_FRAME_HEIGHT,
+                    PERRO_FRAME_WIDTH,
+                    PERRO_FRAME_HEIGHT,
+                    0, 0,
+                    canvas.width,
+                    canvas.height
+                );
+                ctx.restore();
+                
+                contenedor.appendChild(canvas);
                 juego.appendChild(contenedor);
             });
         }
@@ -848,6 +1153,26 @@
             7: { nombre: 'Lia Dragón', avatar: '007.png', spriteSheet: 'spritesheet7.png', vida: 140, velocidad: 4, daño: 9 }
         };
 
+        const DIFICULTAD = {
+            1: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            2: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            3: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            4: { vidaExtra: 1.5,  velocidadIA: 0.65, bloqueo: 0.050, ataque: 0.018, salto: 0.012 },
+            5: { vidaExtra: 1.55, velocidadIA: 0.70, bloqueo: 0.055, ataque: 0.020, salto: 0.013 },
+            6: { vidaExtra: 1.6,  velocidadIA: 0.75, bloqueo: 0.060, ataque: 0.022, salto: 0.015 },
+            7: { vidaExtra: 1.7,  velocidadIA: 0.80, bloqueo: 0.065, ataque: 0.025, salto: 0.018 }
+        };
+
+        const HADOUKEN_RIVAL = {
+            1: 0.001,
+            2: 0.002,
+            3: 0.002,
+            4: 0.003,
+            5: 0.004,
+            6: 0.005,
+            7: 0.006
+        };
+
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
         const COLS = 5, ROWS = 2;
 
@@ -886,6 +1211,14 @@
                 console.error('⚠️ No se pudo cargar hadouken.png - se usará fallback CSS');
                 hadoukenImg = null;
             };
+
+            perroSpriteSheet = new Image();
+            perroSpriteSheet.src = 'spritesheet-perrito.png';
+            perroSpriteSheet.onload = () => { console.log('✅ spritesheet-perrito.png cargado'); };
+            perroSpriteSheet.onerror = () => { 
+                console.error('⚠️ No se pudo cargar spritesheet-perrito.png');
+                perroSpriteSheet = null;
+            };
             
             return Promise.all([
                 new Promise((resolve, reject) => {
@@ -923,7 +1256,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('️ No se pudo cargar spritesheet5.png');
+                        console.error('⚠️ No se pudo cargar spritesheet5.png');
                         resolve();
                     };
                 }),
@@ -935,7 +1268,7 @@
                         resolve(); 
                     };
                     img.onerror = () => { 
-                        console.error('️ No se pudo cargar spritesheet6.png');
+                        console.error('⚠️ No se pudo cargar spritesheet6.png');
                         resolve();
                     };
                 }),
@@ -973,11 +1306,21 @@
             dibujarFrame(canvas, spriteSheets[num], frame[0], frame[1], voltear);
         }
 
+        function detenerTimer() {
+            if (timerIntervalActual !== null) {
+                clearInterval(timerIntervalActual);
+                timerIntervalActual = null;
+            }
+        }
+
         function iniciarRound() {
             if (timeoutGanarRound) {
                 clearTimeout(timeoutGanarRound);
                 timeoutGanarRound = null;
             }
+            detenerTimer();
+            
+            roundTerminado = false;
             
             estadoJugador = 'idle';
             estadoRival = 'idle';
@@ -992,6 +1335,11 @@
             bufferInputs = [];
             ultimaTeclaDireccion = null;
             tiempoUltimaDireccion = 0;
+            
+            intervalosSonidoPerro.forEach(id => clearInterval(id));
+            intervalosSonidoPerro = [];
+            perrosActivos = [];
+            perrosInvocadosEnRound = 0;
             
             estadoJuego = 'combate';
             document.getElementById('modo-indicador').classList.add('oculto');
@@ -1022,7 +1370,7 @@
             rivalEl.style.bottom = '2%';
             
             vidaJugador = jugadorConfig.vida; 
-            vidaRivalMax = Math.round(rivalConfig.vida * 1.4);
+            vidaRivalMax = Math.round(rivalConfig.vida * DIFICULTAD[rivalNum].vidaExtra);
             vidaRival = vidaRivalMax;
             actualizarBarrasVida();
             actualizarFondo();
@@ -1033,15 +1381,21 @@
             tiempo = 60;
             document.getElementById('timer').innerText = tiempo;
             
-            const timerInterval = setInterval(() => {
-                if (!juegoActivo) { clearInterval(timerInterval); return; }
+            timerIntervalActual = setInterval(() => {
+                if (!juegoActivo || roundTerminado) { 
+                    detenerTimer();
+                    return; 
+                }
                 tiempo--;
                 document.getElementById('timer').innerText = tiempo;
                 if (tiempo <= 0) {
-                    if (vidaJugador > vidaRival) ganarRound();
-                    else if (vidaRival > vidaJugador) perderRound();
-                    else ganarRound();
-                    clearInterval(timerInterval);
+                    detenerTimer();
+                    if (!roundTerminado) {
+                        roundTerminado = true;
+                        if (vidaJugador > vidaRival) ganarRound();
+                        else if (vidaRival > vidaJugador) perderRound();
+                        else ganarRound();
+                    }
                 }
             }, 1000);
             bucleJuego();
@@ -1052,7 +1406,6 @@
             const jugadorCanvas = document.querySelector('#jugador canvas');
             const rivalCanvas = document.querySelector('#rival canvas');
             
-            // ✅ CAMBIO INTEGRADO: Arriba/Abajo usan teclasPulsadas (una acción por toque), Izq/Der usan teclas (movimiento continuo)
             const pulsadoArriba = teclasPulsadas['arrowup'] || teclasPulsadas['diagonalupleft'] || teclasPulsadas['diagonalupright'];
             const pulsadoAbajo = teclasPulsadas['arrowdown'] || teclasPulsadas['diagonaldownleft'] || teclasPulsadas['diagonaldownright'];
             const pulsadoIzquierda = teclas['arrowleft'] || teclas['diagonalupleft'] || teclas['diagonaldownleft'];
@@ -1125,8 +1478,8 @@
             let moviendoseRival = false;
             if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
                 estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
-                if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * 0.6; moviendoseRival = true; }
-                else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * 0.6; moviendoseRival = true; }
+                if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
+                else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
                 if (moviendoseRival) {
                     animTimerRival++;
                     if (animTimerRival < 15) estadoRival = 'caminar1';
@@ -1135,12 +1488,12 @@
                 } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
                     estadoRival = 'idle'; animTimerRival = 0;
                 }
-                const probBloqueo = (rivalNum >= 4) ? 0.05 : 0.04;
+                const probBloqueo = DIFICULTAD[rivalNum].bloqueo;
                 if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
                     estadoRival = 'defensa';
                     setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
                 }
-                if (Math.random() < 0.01 && !rivalSaltando && estadoRival === 'idle') {
+                if (Math.random() < DIFICULTAD[rivalNum].salto && !rivalSaltando && estadoRival === 'idle') {
                     rivalSaltando = true;
                     estadoRival = 'saltando';
                     const rivalEl = document.getElementById('rival');
@@ -1153,7 +1506,7 @@
             const mirarDerechaRival = posXJugador > posXRival;
             const frameRival = ANIMACIONES[estadoRival];
             dibujarFrame(rivalCanvas, spriteSheets[rivalNum], frameRival[0], frameRival[1], !mirarDerechaRival);
-            if (Math.random() < 0.015 && Math.abs(posXRival - posXJugador) < 150 && 
+            if (Math.random() < DIFICULTAD[rivalNum].ataque && Math.abs(posXRival - posXJugador) < 150 &&  
                 estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
                 estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado' && !rivalSaltando) {
                 const ataques = ['puñetazo', 'patada', 'especial'];
@@ -1163,6 +1516,12 @@
                 const duracion = ataqueRival === 'puñetazo' ? 300 : ataqueRival === 'patada' ? 400 : 500;
                 atacarRival(ataqueRival, dañoRival, duracion);
             }
+            
+            invocarPerro();
+            actualizarPerros();
+            dibujarPerros();
+            
+            lanzarHadoukenRival();
             
             actualizarBolasEnergia();
             dibujarBolasEnergia();
@@ -1187,10 +1546,12 @@
                     } else {
                         estadoRival = 'golpeado';
                         mostrarEfectoGolpe(posXRival, tipo);
+                        aplicarRetrocesoRival(tipo);
                     }
                     vidaRival -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle'; }, 300);
-                    if (vidaRival <= 0) {
+                    if (vidaRival <= 0 && !roundTerminado) {
+                        roundTerminado = true;
                         estadoRival = 'derrotado'; dibujarDerrotado('rival'); reproducirSonido('ko');
                         setTimeout(() => { ganarRound(); }, 2000);
                     }
@@ -1216,10 +1577,12 @@
                     } else {
                         estadoJugador = 'golpeado';
                         mostrarEfectoGolpe(posXJugador, tipo);
+                        aplicarRetrocesoJugador(tipo);
                     }
                     vidaJugador -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
-                    if (vidaJugador <= 0) {
+                    if (vidaJugador <= 0 && !roundTerminado) {
+                        roundTerminado = true;
                         estadoJugador = 'derrotado'; dibujarDerrotado('jugador'); reproducirSonido('ko');
                         setTimeout(() => { perderRound(); }, 2000);
                     }
@@ -1231,9 +1594,15 @@
         }
 
         function ganarRound() {
+            if (roundTerminado === false) {
+                roundTerminado = true;
+            }
             if (!juegoActivo) return;
-            juegoActivo = false; 
-            victoriasJugador++; 
+            
+            juegoActivo = false;
+            detenerTimer();
+            
+            victoriasJugador = Math.min(2, victoriasJugador + 1);
             actualizarMarcador(); 
             reproducirSonido('victoria');
             
@@ -1248,24 +1617,50 @@
                     roundActual++;
                     iniciarRound();
                 }
-            }, 500);
+            }, 2000);
         }
 
         function perderRound() {
+            if (roundTerminado === false) {
+                roundTerminado = true;
+            }
             if (!juegoActivo) return;
-            juegoActivo = false; 
-            victoriasRival++; 
+            
+            juegoActivo = false;
+            detenerTimer();
+            
+            victoriasRival = Math.min(2, victoriasRival + 1);
             actualizarMarcador(); 
             reproducirSonido('derrota');
             
             timeoutGanarRound = setTimeout(() => {
                 if (victoriasRival >= 2) {
-                    mostrarResultadoFinal(false);
+                    mostrarPantallaCombatePerdido();
                 } else {
                     roundActual++;
                     iniciarRound();
                 }
-            }, 500);
+            }, 2000);
+        }
+
+        function mostrarPantallaCombatePerdido() {
+            estadoJuego = 'final';
+            const indicador = document.getElementById('modo-indicador');
+            indicador.innerText = 'GAME OVER: Pulsa A para reiniciar';
+            indicador.classList.remove('oculto');
+            
+            document.getElementById('hud').classList.add('oculto');
+            document.getElementById('jugador').classList.add('oculto');
+            document.getElementById('rival').classList.add('oculto');
+            
+            const titulo = document.getElementById('resultado-final-titulo');
+            const resultado = document.getElementById('resultado-final');
+            titulo.innerText = '¡DERROTADO!';
+            titulo.style.color = '#f00';
+            resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">' + rivalConfig.nombre + ' te ha vencido</p>' +
+                '<p style="color: #fff;">Marcador: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
+                '<p style="color: #ff0;">Inténtalo de nuevo</p>';
+            document.getElementById('pantalla-final').classList.remove('oculto');
         }
 
         function mostrarPantallaCombate(ganoCombate) {
@@ -1325,8 +1720,20 @@
         }
 
         function actualizarMarcador() {
-            for (let i = 1; i <= 3; i++) document.getElementById('v-j' + i).classList.remove('ganada');
-            for (let i = 1; i <= victoriasJugador; i++) document.getElementById('v-j' + i).classList.add('ganada');
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById('v-j' + i);
+                if (dot) {
+                    dot.classList.remove('ganada-jugador');
+                    if (i <= victoriasJugador) dot.classList.add('ganada-jugador');
+                }
+            }
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById('v-r' + i);
+                if (dot) {
+                    dot.classList.remove('ganada-rival');
+                    if (i <= victoriasRival) dot.classList.add('ganada-rival');
+                }
+            }
         }
 
         function mostrarEfectoGolpe(x, tipo) {
