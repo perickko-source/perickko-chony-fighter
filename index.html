@@ -78,18 +78,29 @@
             pointer-events: none;
         }
 
+        /* --- NUEVO HUD --- */
         #hud {
             position: absolute;
             top: 5px;
             width: 100%;
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
             padding: 0 10px;
             z-index: 100;
         }
 
-        .barra-vida-container {
+        .hud-lado {
+            display: flex;
+            flex-direction: column;
             width: 35%;
+        }
+
+        .hud-lado.izquierda { align-items: flex-start; }
+        .hud-lado.derecha { align-items: flex-end; }
+
+        .barra-vida-container {
+            width: 100%;
             height: 20px;
             background: rgba(0,0,0,0.7);
             border: 2px solid #fff;
@@ -101,55 +112,42 @@
         .barra-vida {
             height: 100%;
             background: linear-gradient(to bottom, #ff0, #f00);
-            transition: width 0.3s;
+            transition: width 0.3s ease-out;
+        }
+
+        /* Invertir el origen de la transformación para que se vacíen hacia los lados */
+        .hud-lado.izquierda .barra-vida {
+            transform-origin: right center;
+            float: right; /* Para que se pegue a la derecha */
+        }
+
+        .hud-lado.derecha .barra-vida {
+            transform-origin: left center;
+            float: left; /* Para que se pegue a la izquierda */
         }
 
         .nombre-luchador {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             color: white;
             font-size: 10px;
             font-weight: bold;
             text-shadow: 1px 1px #000;
-            z-index: 10;
+            margin-top: 4px;
             white-space: nowrap;
         }
 
-        #timer-container { text-align: center; }
-
-        #timer {
-            width: 50px;
-            height: 30px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #fff;
-            color: #ff0;
-            font-size: 18px;
+        .marcador-dots {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 3px;
+            gap: 4px;
+            margin-top: 4px;
         }
 
-        #round-info {
-            color: #0f0;
-            font-size: 10px;
-            margin-top: 2px;
-            text-shadow: 1px 1px #000;
-        }
-
-        #marcador {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 3px;
-        }
+        .hud-lado.izquierda .marcador-dots { justify-content: flex-start; }
+        .hud-lado.derecha .marcador-dots { justify-content: flex-end; }
 
         .victoria-dot {
             width: 8px;
             height: 8px;
-            border-radius: 50%;
+            border-radius: 2px; /* Cuadraditos en lugar de círculos */
             background: #333;
             border: 1px solid #666;
         }
@@ -166,6 +164,28 @@
             box-shadow: 0 0 5px #f00;
         }
 
+        #timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+            margin-top: -5px; /* Subir un poco el timer para alinearlo con las barras */
+        }
+
+        #timer {
+            width: 50px;
+            height: 30px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #fff;
+            color: #ff0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+        /* --- FIN NUEVO HUD --- */
+
         .luchador {
             position: absolute;
             bottom: 2%;
@@ -174,9 +194,7 @@
             z-index: 50;
         }
 
-        #jugador {
-            z-index: 60;
-        }
+        #jugador { z-index: 60; }
 
         .luchador.tanque {
             width: 168px;
@@ -256,23 +274,9 @@
             transform: scale(1.05);
         }
 
-        .personaje-opcion img {
-            height: 110px;
-            object-fit: contain;
-        }
-
-        .personaje-opcion h3 {
-            color: #fff;
-            font-size: 10px;
-            margin: 5px 0;
-        }
-
-        .stats {
-            color: #aaa;
-            font-size: 8px;
-            line-height: 1.3;
-        }
-
+        .personaje-opcion img { height: 110px; object-fit: contain; }
+        .personaje-opcion h3 { color: #fff; font-size: 10px; margin: 5px 0; }
+        .stats { color: #aaa; font-size: 8px; line-height: 1.3; }
         .stats span { color: #0f0; }
 
         .btn-juego {
@@ -300,8 +304,7 @@
 
         #anuncio {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-size: 36px;
             color: #ff0;
@@ -329,32 +332,11 @@
             align-items: center;
             z-index: 900;
         }
-
         #pantalla-round.visible { display: flex; }
-
-        #pantalla-round h2 {
-            font-size: 28px;
-            color: #ff0;
-            text-shadow: 2px 2px #f00;
-            margin-bottom: 10px;
-        }
-
-        #pantalla-round p {
-            font-size: 14px;
-            color: #fff;
-            margin-bottom: 15px;
-            text-align: center;
-            white-space: pre-line;
-        }
-
+        #pantalla-round h2 { font-size: 28px; color: #ff0; text-shadow: 2px 2px #f00; margin-bottom: 10px; }
+        #pantalla-round p { font-size: 14px; color: #fff; margin-bottom: 15px; text-align: center; white-space: pre-line; }
         #pantalla-final h1 { font-size: 32px; }
-
-        #resultado-final {
-            font-size: 16px;
-            color: #fff;
-            margin: 10px 0;
-            text-align: center;
-        }
+        #resultado-final { font-size: 16px; color: #fff; margin: 10px 0; text-align: center; }
 
         .boton-tactil {
             position: absolute;
@@ -366,7 +348,6 @@
             user-select: none;
             -webkit-user-select: none;
         }
-
         .boton-tactil:active { opacity: 0.3; }
 
         #btn-up { top: 586px; left: 113px; width: 70px; height: 70px; }
@@ -379,27 +360,47 @@
         #btn-b { top: 734px; left: 395px; width: 75px; height: 75px; }
         #btn-select { top: 875px; left: 209px; width: 85px; height: 45px; }
         #btn-start { top: 874px; left: 298px; width: 85px; height: 45px; }
-
         #btn-diag-up-left { top: 608px; left: 63px; width: 50px; height: 50px; }
         #btn-diag-up-right { top: 606px; left: 190px; width: 50px; height: 50px; }
         #btn-diag-down-left { top: 735px; left: 64px; width: 50px; height: 50px; }
         #btn-diag-down-right { top: 736px; left: 190px; width: 50px; height: 50px; }
-
         .boton-tactil.activo { opacity: 0.3; }
 
         #modo-indicador {
             position: absolute;
-            top: 5px;
-            left: 50%;
+            top: 5px; left: 50%;
             transform: translateX(-50%);
-            color: #0f0;
-            font-size: 9px;
+            color: #0f0; font-size: 9px;
             background: rgba(0,0,0,0.7);
-            padding: 2px 8px;
-            border-radius: 3px;
-            z-index: 100;
-            white-space: nowrap;
+            padding: 2px 8px; border-radius: 3px;
+            z-index: 100; white-space: nowrap;
         }
+
+        #pantalla-vs {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 800;
+        }
+        .vs-contenedor { display: flex; align-items: center; gap: 10px; }
+        .vs-marco {
+            width: 140px; height: 140px;
+            border: 3px solid #ff0; border-radius: 6px;
+            overflow: hidden; box-shadow: 0 0 15px rgba(255, 255, 0, 0.5); background: #000;
+        }
+        .vs-marco img { width: 100%; height: 100%; object-fit: cover; }
+        .vs-texto { font-size: 48px; font-weight: bold; color: #f00; text-shadow: 3px 3px #000, -1px -1px #ff0; font-style: italic; }
+        .vs-nombres { display: flex; justify-content: space-between; width: 100%; max-width: 320px; margin-top: 10px; }
+        .vs-nombre { color: #fff; font-size: 11px; font-weight: bold; text-shadow: 1px 1px #000; text-align: center; flex: 1; }
+        
+        #texto-round, #texto-fight {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-weight: bold; text-shadow: 4px 4px #000; z-index: 700;
+            opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none;
+        }
+        #texto-round.visible, #texto-fight.visible { opacity: 1; }
+        #texto-round { color: #fff; font-size: 42px; }
+        #texto-fight { color: #f00; font-size: 56px; font-style: italic; text-shadow: 4px 4px #000, 0 0 20px #f00; }
     </style>
 </head>
 <body>
@@ -412,30 +413,57 @@
                 <div id="juego">
                     <div id="modo-indicador">MENÚ: Elige personaje</div>
 
+                    <!-- NUEVO HUD -->
                     <div id="hud" class="oculto">
-                        <div class="barra-vida-container">
-                            <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
+                        <!-- Lado Izquierdo (Jugador) -->
+                        <div class="hud-lado izquierda">
+                            <div class="barra-vida-container">
+                                <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
+                            </div>
                             <div class="nombre-luchador" id="nombre-jugador">JUGADOR</div>
-                        </div>
-                        <div id="timer-container">
-                            <div id="timer">60</div>
-                            <div id="round-info">Round 1/3</div>
-                            <div id="marcador">
+                            <div class="marcador-dots" id="marcador-jugador">
                                 <div class="victoria-dot" id="v-j1"></div>
                                 <div class="victoria-dot" id="v-j2"></div>
                                 <div class="victoria-dot" id="v-j3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Centro (Timer) -->
+                        <div id="timer-container">
+                            <div id="timer">60</div>
+                        </div>
+
+                        <!-- Lado Derecho (Rival) -->
+                        <div class="hud-lado derecha">
+                            <div class="barra-vida-container">
+                                <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
+                            </div>
+                            <div class="nombre-luchador" id="nombre-rival">RIVAL</div>
+                            <div class="marcador-dots" id="marcador-rival">
                                 <div class="victoria-dot" id="v-r1"></div>
                                 <div class="victoria-dot" id="v-r2"></div>
                                 <div class="victoria-dot" id="v-r3"></div>
                             </div>
                         </div>
-                        <div class="barra-vida-container">
-                            <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
-                            <div class="nombre-luchador" id="nombre-rival">RIVAL</div>
-                        </div>
                     </div>
 
                     <div id="jugador" class="luchador oculto"><canvas></canvas></div>
+                    
+                    <div id="pantalla-vs">
+                        <div class="vs-contenedor">
+                            <div class="vs-marco"><img id="vs-avatar-jugador" src="avatar_temp.png" alt="Jugador"></div>
+                            <div class="vs-texto">VS</div>
+                            <div class="vs-marco"><img id="vs-avatar-rival" src="avatar_temp.png" alt="Rival"></div>
+                        </div>
+                        <div class="vs-nombres">
+                            <div class="vs-nombre" id="vs-nombre-jugador">JUGADOR</div>
+                            <div class="vs-nombre" id="vs-nombre-rival">RIVAL</div>
+                        </div>
+                    </div>
+
+                    <div id="texto-round"></div>
+                    <div id="texto-fight">FIGHT!</div>
+
                     <div id="rival" class="luchador oculto"><canvas></canvas></div>
 
                     <div id="pantalla-round">
@@ -447,7 +475,6 @@
                     <div id="pantalla-inicio" class="pantalla">
                         <h1>CHONY GAMEBOY<br>STREET FIGHTER</h1>
                         <h2>ELIGE TU LUCHADOR</h2>
-                        
                         <div class="selector-personajes">
                             <div class="personaje-opcion seleccionado" data-personaje="1">
                                 <img src="001.png" alt="Personaje 1">
@@ -479,12 +506,10 @@
             <div id="btn-down" class="boton-tactil" data-tecla="arrowdown"></div>
             <div id="btn-left" class="boton-tactil" data-tecla="arrowleft"></div>
             <div id="btn-right" class="boton-tactil" data-tecla="arrowright"></div>
-            
             <div id="btn-diag-up-left" class="boton-tactil" data-tecla="diagonalupleft"></div>
             <div id="btn-diag-up-right" class="boton-tactil" data-tecla="diagonalupright"></div>
             <div id="btn-diag-down-left" class="boton-tactil" data-tecla="diagonaldownleft"></div>
             <div id="btn-diag-down-right" class="boton-tactil" data-tecla="diagonaldownright"></div>
-            
             <div id="btn-x" class="boton-tactil" data-tecla="c"></div>
             <div id="btn-y" class="boton-tactil" data-tecla="v"></div>
             <div id="btn-a" class="boton-tactil" data-tecla="z"></div>
@@ -495,62 +520,37 @@
     </div>
 
     <script>
-        function vibrarBoton() {
-            try {
-                if (navigator.vibrate) {
-                    navigator.vibrate(30);
-                }
-            } catch(e) {}
-        }
-
+        function vibrarBoton() { try { if (navigator.vibrate) navigator.vibrate(30); } catch(e) {} }
         function escalarConsola() {
             const wrapper = document.getElementById('consola-wrapper');
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            const scaleX = windowWidth / 572;
-            const scaleY = windowHeight / 1024;
-            const scale = Math.min(scaleX, scaleY, 1);
-            wrapper.style.transform = `scale(${scale})`;
+            const scaleX = window.innerWidth / 572;
+            const scaleY = window.innerHeight / 1024;
+            wrapper.style.transform = `scale(${Math.min(scaleX, scaleY, 1)})`;
         }
-
         window.addEventListener('resize', escalarConsola);
         window.addEventListener('load', escalarConsola);
         escalarConsola();
 
         let sonidoActivado = true;
-
         const sonidos = {
-            puñetazo: new Audio('puñetazo.mp3'),
-            patada: new Audio('patada.mp3'),
-            especial: new Audio('especial.mp3'),
-            hadouken: new Audio('hadouken.mp3'),
-            hadouken2: new Audio('hadouken2.mp3'),
-            bloqueo: new Audio('bloqueo.mp3'),
-            ko: new Audio('ko.mp3'),
-            inicioround: new Audio('inicioround.mp3'),
-            victoria: new Audio('victoria.mp3'),
-            derrota: new Audio('derrota.mp3'),
-            menu: new Audio('menu.mp3'),
-            seleccion: new Audio('seleccion.mp3'),
-            silbido: new Audio('silbido.mp3'),
-            perrito: new Audio('perrito.mp3')
+            puñetazo: new Audio('puñetazo.mp3'), patada: new Audio('patada.mp3'), especial: new Audio('especial.mp3'),
+            hadouken: new Audio('hadouken.mp3'), hadouken2: new Audio('hadouken2.mp3'), bloqueo: new Audio('bloqueo.mp3'),
+            ko: new Audio('ko.mp3'), inicioround: new Audio('inicioround.mp3'), victoria: new Audio('victoria.mp3'),
+            derrota: new Audio('derrota.mp3'), menu: new Audio('menu.mp3'), seleccion: new Audio('seleccion.mp3'),
+            silbido: new Audio('silbido.mp3'), perrito: new Audio('perrito.mp3')
         };
-
         Object.values(sonidos).forEach(s => s.volume = 0.7);
-
         function reproducirSonido(nombre) {
             if (!sonidoActivado) return;
             const sonido = sonidos[nombre];
             if (sonido) {
-                const clone = sonido.cloneNode(true);
-                clone.volume = 0.7;
+                const clone = sonido.cloneNode(true); clone.volume = 0.7;
                 clone.play().catch(e => console.log('Error reproduciendo ' + nombre + ':', e));
             }
         }
 
         const PARALLAX_FACTOR = 0.4;
         const POSICION_INICIAL_X = 30;
-
         function actualizarFondo() {
             const juego = document.getElementById('juego');
             const desplazamiento = (posXJugador - POSICION_INICIAL_X) * PARALLAX_FACTOR;
@@ -562,13 +562,9 @@
         let menuCooldown = false;
 
         function actualizarSeleccionMenu() {
-            document.querySelectorAll('.personaje-opcion').forEach(el => {
-                el.classList.remove('seleccionado');
-            });
+            document.querySelectorAll('.personaje-opcion').forEach(el => el.classList.remove('seleccionado'));
             const opciones = document.querySelectorAll('.personaje-opcion');
-            if (opciones[indicePersonaje]) {
-                opciones[indicePersonaje].classList.add('seleccionado');
-            }
+            if (opciones[indicePersonaje]) opciones[indicePersonaje].classList.add('seleccionado');
             const nombres = ['Niña Punk', 'Abuela Tech', 'Abuela Cool'];
             const indicador = document.getElementById('modo-indicador');
             indicador.innerText = 'MENÚ: ' + nombres[indicePersonaje];
@@ -577,8 +573,7 @@
 
         function confirmarSeleccionPersonaje() {
             reproducirSonido('seleccion');
-            const num = indicePersonaje + 1;
-            seleccionarPersonaje(num);
+            seleccionarPersonaje(indicePersonaje + 1);
         }
 
         function seleccionarPersonaje(num) {
@@ -586,10 +581,7 @@
             jugadorNum = num;
             rivalesDisponibles = [1, 2, 3].filter(n => n !== num);
             rivalesDisponibles.sort(() => Math.random() - 0.5);
-            rivalesDisponibles.push(4);
-            rivalesDisponibles.push(5);
-            rivalesDisponibles.push(6);
-            rivalesDisponibles.push(7);
+            rivalesDisponibles.push(4, 5, 6, 7);
             indiceRivalActual = 0;
             jugadorConfig = PERSONAJES[jugadorNum];
             rivalNum = rivalesDisponibles[0];
@@ -597,23 +589,48 @@
             roundActual = 1;
             victoriasJugador = 0;
             victoriasRival = 0;
-            iniciarRound();
+            mostrarPantallaVS();
+        }
+
+        function iniciarSiguienteCombate() {
+            indiceRivalActual++;
+            rivalNum = rivalesDisponibles[indiceRivalActual];
+            rivalConfig = PERSONAJES[rivalNum];
+            roundActual = 1;
+            victoriasJugador = 0;
+            victoriasRival = 0;
+            mostrarPantallaVS();
+        }
+
+        function mostrarPantallaVS() {
+            document.getElementById('pantalla-inicio').classList.add('oculto');
+            document.getElementById('pantalla-round').classList.remove('visible');
+            document.getElementById('pantalla-final').classList.add('oculto');
+
+            const pantallaVS = document.getElementById('pantalla-vs');
+            document.getElementById('vs-avatar-jugador').src = jugadorConfig.avatarCara;
+            document.getElementById('vs-avatar-rival').src = rivalConfig.avatarCara;
+            document.getElementById('vs-nombre-jugador').textContent = jugadorConfig.nombre;
+            document.getElementById('vs-nombre-rival').textContent = rivalConfig.nombre;
+            
+            pantallaVS.style.display = 'flex';
+            setTimeout(() => {
+                pantallaVS.style.display = 'none';
+                iniciarRound();
+            }, 2500);
         }
 
         const teclas = {};
         const teclasPulsadas = {};
-
         const MAX_TIEMPO_ENTRE_INPUTS = 500;
         let bufferInputs = [];
         let bolasEnergia = [];
         let ultimaTeclaDireccion = null;
         let tiempoUltimaDireccion = 0;
-
         let hadoukenImg = null;
         let perroSpriteSheet = null;
         const PERRO_FRAME_WIDTH = 204;
         const PERRO_FRAME_HEIGHT = 340;
-
         let perrosActivos = [];
         let intervalosSonidoPerro = [];
         let perrosInvocadosEnRound = 0;
@@ -621,31 +638,20 @@
         const PROBABILIDAD_PERRO = 0.003;
         const VELOCIDAD_PERRO = 4;
         const RIVALES_CON_PERRO = [5, 7];
-
-        const RETROCESO = {
-            puñetazo: 10,
-            patada: 18,
-            especial: 30,
-            hadouken: 25
-        };
-
+        const RETROCESO = { puñetazo: 10, patada: 18, especial: 30, hadouken: 25 };
         let timerIntervalActual = null;
         let roundTerminado = false;
 
         function registrarInputParaEspecial(tecla) {
             const ahora = Date.now();
-            
             if (tecla === 'arrowleft' || tecla === 'arrowright') {
                 ultimaTeclaDireccion = tecla;
                 tiempoUltimaDireccion = ahora;
             }
-            
             if (tecla === 'z' && ultimaTeclaDireccion && (ahora - tiempoUltimaDireccion < MAX_TIEMPO_ENTRE_INPUTS)) {
                 if (bolasEnergia.length === 0 && estadoJuego === 'combate') {
                     const rivalADerecha = posXRival > posXJugador;
-                    const direccionCorrecta = (rivalADerecha && ultimaTeclaDireccion === 'arrowleft') ||
-                                             (!rivalADerecha && ultimaTeclaDireccion === 'arrowright');
-                    
+                    const direccionCorrecta = (rivalADerecha && ultimaTeclaDireccion === 'arrowleft') || (!rivalADerecha && ultimaTeclaDireccion === 'arrowright');
                     if (direccionCorrecta) {
                         lanzarBolaEnergia();
                         ultimaTeclaDireccion = null;
@@ -658,57 +664,20 @@
         function lanzarBolaEnergia() {
             estadoJugador = 'puñetazo';
             reproducirSonido('hadouken');
-            
             const direccion = (posXRival > posXJugador) ? 1 : -1;
-            
-            bolasEnergia.push({
-                x: posXJugador + (direccion === 1 ? 140 : -40),
-                y: 100,
-                velocidad: 5 * direccion,
-                radio: 40,
-                direccion: direccion,
-                impacto: false,
-                esRival: false,
-                tipo: 'hadouken',
-                activa: true
-            });
-
-            setTimeout(() => {
-                if (vidaJugador > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') {
-                    estadoJugador = 'idle';
-                }
-            }, 300);
+            bolasEnergia.push({ x: posXJugador + (direccion === 1 ? 140 : -40), y: 100, velocidad: 5 * direccion, radio: 40, direccion: direccion, impacto: false, esRival: false, tipo: 'hadouken', activa: true });
+            setTimeout(() => { if (vidaJugador > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') estadoJugador = 'idle'; }, 300);
         }
 
         function lanzarHadoukenRival() {
             const bolasRivalActivas = bolasEnergia.filter(b => b.esRival && b.activa).length;
             if (bolasRivalActivas > 0) return;
-            
             const probabilidad = HADOUKEN_RIVAL[rivalNum] || 0.001;
             if (Math.random() > probabilidad) return;
-            
             if (Math.abs(posXRival - posXJugador) < 100) return;
-            
             const direccion = (posXJugador > posXRival) ? 1 : -1;
-            
-            bolasEnergia.push({
-                x: posXRival + (direccion === 1 ? 140 : -40),
-                y: 100,
-                velocidad: 5 * direccion,
-                radio: 40,
-                direccion: direccion,
-                impacto: false,
-                esRival: true,
-                tipo: 'hadouken',
-                activa: true
-            });
-            
-            // NUEVO: Sonido diferente según el rival
-            if (rivalNum === 4 || rivalNum === 6 || rivalNum === 7) {
-                reproducirSonido('hadouken2');
-            } else {
-                reproducirSonido('hadouken');
-            }
+            bolasEnergia.push({ x: posXRival + (direccion === 1 ? 140 : -40), y: 100, velocidad: 5 * direccion, radio: 40, direccion: direccion, impacto: false, esRival: true, tipo: 'hadouken', activa: true });
+            if (rivalNum === 4 || rivalNum === 6 || rivalNum === 7) { reproducirSonido('hadouken2'); } else { reproducirSonido('hadouken'); }
         }
 
         function aplicarRetrocesoRival(tipo) {
@@ -732,19 +701,12 @@
         function actualizarBolasEnergia() {
             for (let i = bolasEnergia.length - 1; i >= 0; i--) {
                 const bola = bolasEnergia[i];
-                if (!bola.activa) {
-                    bolasEnergia.splice(i, 1);
-                    continue;
-                }
-                
-                if (!bola.impacto) {
-                    bola.x += bola.velocidad;
-                }
+                if (!bola.activa) { bolasEnergia.splice(i, 1); continue; }
+                if (!bola.impacto) bola.x += bola.velocidad;
                 
                 if (!bola.esRival) {
                     const distanciaX = Math.abs(bola.x - (posXRival + 70));
                     const distanciaY = Math.abs(bola.y - 100);
-                    
                     if (!bola.impacto && distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
                         let dañoFinal = 15;
                         if (estadoRival === 'defensa') {
@@ -756,18 +718,12 @@
                             mostrarEfectoGolpe(posXRival, 'especial');
                             const rivalEl = document.getElementById('rival');
                             rivalEl.style.filter = 'brightness(3) drop-shadow(0 0 20px #0ff)';
-                            setTimeout(() => {
-                                rivalEl.style.filter = '';
-                            }, 400);
+                            setTimeout(() => { rivalEl.style.filter = ''; }, 400);
                             aplicarRetrocesoRival('hadouken');
                         }
                         vidaRival -= dañoFinal;
                         actualizarBarrasVida();
-                        
-                        setTimeout(() => {
-                            if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle';
-                        }, 300);
-                        
+                        setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle'; }, 300);
                         if (vidaRival <= 0 && !roundTerminado) {
                             roundTerminado = true;
                             estadoRival = 'derrotado';
@@ -775,14 +731,9 @@
                             reproducirSonido('ko');
                             setTimeout(() => { ganarRound(); }, 2000);
                         }
-                        
                         bola.impacto = true;
                         bola.velocidad = 0;
-                        
-                        setTimeout(() => {
-                            bola.activa = false;
-                        }, 400);
-                        
+                        setTimeout(() => { bola.activa = false; }, 400);
                         continue;
                     }
                 }
@@ -790,11 +741,8 @@
                 if (bola.esRival) {
                     const distanciaX = Math.abs(bola.x - (posXJugador + 70));
                     const distanciaY = Math.abs(bola.y - 100);
-                    
                     if (!bola.impacto && distanciaX < (bola.radio + 70) && distanciaY < (bola.radio + 100)) {
-                        if (estaSaltando) {
-                            // Esquiva
-                        } else {
+                        if (estaSaltando) { /* Esquiva */ } else {
                             let dañoFinal = 15;
                             if (estaDefendiendo) {
                                 dañoFinal = dañoFinal * 0.2;
@@ -805,18 +753,12 @@
                                 mostrarEfectoGolpe(posXJugador, 'especial');
                                 const jugadorEl = document.getElementById('jugador');
                                 jugadorEl.style.filter = 'brightness(3) drop-shadow(0 0 20px #f00)';
-                                setTimeout(() => {
-                                    jugadorEl.style.filter = '';
-                                }, 400);
+                                setTimeout(() => { jugadorEl.style.filter = ''; }, 400);
                                 aplicarRetrocesoJugador('hadouken');
                             }
                             vidaJugador -= dañoFinal;
                             actualizarBarrasVida();
-                            
-                            setTimeout(() => {
-                                if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle';
-                            }, 300);
-                            
+                            setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
                             if (vidaJugador <= 0 && !roundTerminado) {
                                 roundTerminado = true;
                                 estadoJugador = 'derrotado';
@@ -824,33 +766,23 @@
                                 reproducirSonido('ko');
                                 setTimeout(() => { perderRound(); }, 2000);
                             }
-                            
                             bola.impacto = true;
                             bola.velocidad = 0;
-                            
-                            setTimeout(() => {
-                                bola.activa = false;
-                            }, 400);
-                            
+                            setTimeout(() => { bola.activa = false; }, 400);
                             continue;
                         }
                     }
                 }
                 
-                if (bola.x > 525 || bola.x < -40) {
-                    bola.activa = false;
-                    bolasEnergia.splice(i, 1);
-                }
+                if (bola.x > 525 || bola.x < -40) { bola.activa = false; bolasEnergia.splice(i, 1); }
             }
         }
 
         function dibujarBolasEnergia() {
             const juego = document.getElementById('juego');
             document.querySelectorAll('.bola-energia').forEach(el => el.remove());
-            
             bolasEnergia.forEach(bola => {
                 if (!bola.activa) return;
-                
                 const contenedor = document.createElement('div');
                 contenedor.className = 'bola-energia';
                 contenedor.style.position = 'absolute';
@@ -860,10 +792,7 @@
                 contenedor.style.height = (bola.radio * 2) + 'px';
                 contenedor.style.zIndex = '150';
                 contenedor.style.pointerEvents = 'none';
-                
-                if (bola.direccion === -1) {
-                    contenedor.style.transform = 'scaleX(-1)';
-                }
+                if (bola.direccion === -1) contenedor.style.transform = 'scaleX(-1)';
                 
                 for (let i = 3; i >= 1; i--) {
                     const estela = document.createElement('div');
@@ -898,7 +827,6 @@
                     bolaPrincipal.style.border = '3px solid #0ff';
                     contenedor.appendChild(bolaPrincipal);
                 }
-                
                 juego.appendChild(contenedor);
             });
         }
@@ -908,109 +836,50 @@
             if (perrosInvocadosEnRound >= MAX_PERROS_POR_ROUND) return;
             if (Math.random() > PROBABILIDAD_PERRO) return;
             if (perrosActivos.length > 0) return;
-            
             perrosInvocadosEnRound++;
             reproducirSonido('silbido');
-            
             const direccion = (posXRival > posXJugador) ? -1 : 1;
             const xInicial = direccion === -1 ? 525 : -100;
-            
             setTimeout(() => {
-                perrosActivos.push({
-                    x: xInicial,
-                    y: 20,
-                    velocidad: VELOCIDAD_PERRO * direccion,
-                    frame: 0,
-                    frameTimer: 0,
-                    activa: true,
-                    haGolpeado: false,
-                    sonidoLoop: null
-                });
-                
+                perrosActivos.push({ x: xInicial, y: 20, velocidad: VELOCIDAD_PERRO * direccion, frame: 0, frameTimer: 0, activa: true, haGolpeado: false, sonidoLoop: null });
                 const perroActual = perrosActivos[perrosActivos.length - 1];
-                const intervaloId = setInterval(() => {
-                    if (perroActual.activa) {
-                        reproducirSonido('perrito');
-                    } else {
-                        clearInterval(intervaloId);
-                    }
-                }, 800);
+                const intervaloId = setInterval(() => { if (perroActual.activa) { reproducirSonido('perrito'); } else { clearInterval(intervaloId); } }, 800);
                 perroActual.sonidoLoop = intervaloId;
                 intervalosSonidoPerro.push(intervaloId);
-                
             }, 500);
         }
 
         function actualizarPerros() {
             for (let i = perrosActivos.length - 1; i >= 0; i--) {
                 const perro = perrosActivos[i];
-                if (!perro.activa) {
-                    if (perro.sonidoLoop) clearInterval(perro.sonidoLoop);
-                    perrosActivos.splice(i, 1);
-                    continue;
-                }
-                
+                if (!perro.activa) { if (perro.sonidoLoop) clearInterval(perro.sonidoLoop); perrosActivos.splice(i, 1); continue; }
                 perro.x += perro.velocidad;
-                
                 perro.frameTimer++;
-                if (perro.frameTimer >= 8) {
-                    perro.frame = (perro.frame + 1) % 10;
-                    perro.frameTimer = 0;
-                }
-                
+                if (perro.frameTimer >= 8) { perro.frame = (perro.frame + 1) % 10; perro.frameTimer = 0; }
                 const distanciaX = Math.abs(perro.x - (posXJugador + 70));
                 const distanciaY = Math.abs(perro.y - 50);
-                
                 if (distanciaX < 80 && distanciaY < 100 && !perro.haGolpeado) {
-                    if (estaSaltando) {
-                        // Esquiva
-                    } else {
+                    if (estaSaltando) { /* Esquiva */ } else {
                         let dañoFinal = 10;
-                        if (estaDefendiendo) {
-                            dañoFinal = 2;
-                            mostrarEfectoGolpe(posXJugador, 'BLOQ');
-                            reproducirSonido('bloqueo');
-                        } else {
-                            estadoJugador = 'golpeado';
-                            mostrarEfectoGolpe(posXJugador, 'puñetazo');
-                            reproducirSonido('puñetazo');
-                            aplicarRetrocesoJugador('patada');
-                        }
+                        if (estaDefendiendo) { dañoFinal = 2; mostrarEfectoGolpe(posXJugador, 'BLOQ'); reproducirSonido('bloqueo'); }
+                        else { estadoJugador = 'golpeado'; mostrarEfectoGolpe(posXJugador, 'puñetazo'); reproducirSonido('puñetazo'); aplicarRetrocesoJugador('patada'); }
                         vidaJugador -= dañoFinal;
                         actualizarBarrasVida();
-                        
-                        setTimeout(() => {
-                            if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle';
-                        }, 300);
-                        
-                        if (vidaJugador <= 0 && !roundTerminado) {
-                            roundTerminado = true;
-                            estadoJugador = 'derrotado';
-                            dibujarDerrotado('jugador');
-                            reproducirSonido('ko');
-                            setTimeout(() => { perderRound(); }, 2000);
-                        }
+                        setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
+                        if (vidaJugador <= 0 && !roundTerminado) { roundTerminado = true; estadoJugador = 'derrotado'; dibujarDerrotado('jugador'); reproducirSonido('ko'); setTimeout(() => { perderRound(); }, 2000); }
                         perro.haGolpeado = true;
                     }
                 }
-                
-                if (perro.velocidad < 0 && perro.x < -100) {
-                    perro.activa = false;
-                } else if (perro.velocidad > 0 && perro.x > 600) {
-                    perro.activa = false;
-                }
+                if (perro.velocidad < 0 && perro.x < -100) { perro.activa = false; } else if (perro.velocidad > 0 && perro.x > 600) { perro.activa = false; }
             }
         }
 
         function dibujarPerros() {
             const juego = document.getElementById('juego');
             document.querySelectorAll('.perro-activo').forEach(el => el.remove());
-            
             if (!perroSpriteSheet) return;
-            
             perrosActivos.forEach(perro => {
                 if (!perro.activa) return;
-                
                 const contenedor = document.createElement('div');
                 contenedor.className = 'perro-activo';
                 contenedor.style.position = 'absolute';
@@ -1020,34 +889,16 @@
                 contenedor.style.height = '150px';
                 contenedor.style.zIndex = '140';
                 contenedor.style.pointerEvents = 'none';
-                
                 const canvas = document.createElement('canvas');
-                canvas.width = 100;
-                canvas.height = 150;
-                
+                canvas.width = 100; canvas.height = 150;
                 const ctx = canvas.getContext('2d');
                 const fila = Math.floor(perro.frame / 5);
                 const columna = perro.frame % 5;
-                
                 const voltear = perro.velocidad > 0;
-                
                 ctx.save();
-                if (voltear) {
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
-                }
-                ctx.drawImage(
-                    perroSpriteSheet,
-                    columna * PERRO_FRAME_WIDTH,
-                    fila * PERRO_FRAME_HEIGHT,
-                    PERRO_FRAME_WIDTH,
-                    PERRO_FRAME_HEIGHT,
-                    0, 0,
-                    canvas.width,
-                    canvas.height
-                );
+                if (voltear) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+                ctx.drawImage(perroSpriteSheet, columna * PERRO_FRAME_WIDTH, fila * PERRO_FRAME_HEIGHT, PERRO_FRAME_WIDTH, PERRO_FRAME_HEIGHT, 0, 0, canvas.width, canvas.height);
                 ctx.restore();
-                
                 contenedor.appendChild(canvas);
                 juego.appendChild(contenedor);
             });
@@ -1056,130 +907,59 @@
         function activarTecla(tecla) { 
             teclas[tecla] = true; 
             vibrarBoton();
-            
             registrarInputParaEspecial(tecla);
-            
             if (estadoJuego === 'menu') manejarMenu(tecla);
             else if (estadoJuego === 'round') manejarRound(tecla);
             else if (estadoJuego === 'final') manejarFinal(tecla);
         }
-        
         function desactivarTecla(tecla) { teclas[tecla] = false; }
 
         function manejarMenu(tecla) {
             if (menuCooldown) return;
-            if (tecla === 'arrowleft') {
-                indicePersonaje = Math.max(0, indicePersonaje - 1);
-                reproducirSonido('menu');
-                actualizarSeleccionMenu();
-                menuCooldown = true;
-                setTimeout(() => menuCooldown = false, 200);
-            } else if (tecla === 'arrowright') {
-                indicePersonaje = Math.min(2, indicePersonaje + 1);
-                reproducirSonido('menu');
-                actualizarSeleccionMenu();
-                menuCooldown = true;
-                setTimeout(() => menuCooldown = false, 200);
-            } else if (tecla === 'z' || tecla === 'start') {
-                confirmarSeleccionPersonaje();
-            }
+            if (tecla === 'arrowleft') { indicePersonaje = Math.max(0, indicePersonaje - 1); reproducirSonido('menu'); actualizarSeleccionMenu(); menuCooldown = true; setTimeout(() => menuCooldown = false, 200); }
+            else if (tecla === 'arrowright') { indicePersonaje = Math.min(2, indicePersonaje + 1); reproducirSonido('menu'); actualizarSeleccionMenu(); menuCooldown = true; setTimeout(() => menuCooldown = false, 200); }
+            else if (tecla === 'z' || tecla === 'start') { confirmarSeleccionPersonaje(); }
         }
-
-        function manejarRound(tecla) {
-            if (tecla === 'z' || tecla === 'start') siguienteRound();
-        }
-
-        function manejarFinal(tecla) {
-            if (tecla === 'z' || tecla === 'start') location.reload();
-        }
+        function manejarRound(tecla) { if (tecla === 'z' || tecla === 'start') siguienteRound(); }
+        function manejarFinal(tecla) { if (tecla === 'z' || tecla === 'start') location.reload(); }
 
         document.querySelectorAll('.boton-tactil').forEach(btn => {
             const tecla = btn.dataset.tecla;
-            
-            btn.addEventListener('touchstart', (e) => { 
-                e.preventDefault(); 
-                if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
-                activarTecla(tecla); 
-                btn.classList.add('activo'); 
-            }, { passive: false });
-            
-            btn.addEventListener('touchend', (e) => { 
-                e.preventDefault(); 
-                desactivarTecla(tecla); 
-                btn.classList.remove('activo'); 
-            }, { passive: false });
-            
-            btn.addEventListener('touchcancel', (e) => { 
-                e.preventDefault(); 
-                desactivarTecla(tecla); 
-                btn.classList.remove('activo'); 
-            }, { passive: false });
-            
-            btn.addEventListener('mousedown', (e) => { 
-                e.preventDefault(); 
-                if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
-                activarTecla(tecla); 
-                btn.classList.add('activo'); 
-            });
-            
-            btn.addEventListener('mouseup', (e) => { 
-                e.preventDefault(); 
-                desactivarTecla(tecla); 
-                btn.classList.remove('activo'); 
-            });
-            
-            btn.addEventListener('mouseleave', () => { 
-                desactivarTecla(tecla); 
-                btn.classList.remove('activo'); 
-            });
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); if (!teclas[tecla]) { teclasPulsadas[tecla] = true; } activarTecla(tecla); btn.classList.add('activo'); }, { passive: false });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); }, { passive: false });
+            btn.addEventListener('touchcancel', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); }, { passive: false });
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); if (!teclas[tecla]) { teclasPulsadas[tecla] = true; } activarTecla(tecla); btn.classList.add('activo'); });
+            btn.addEventListener('mouseup', (e) => { e.preventDefault(); desactivarTecla(tecla); btn.classList.remove('activo'); });
+            btn.addEventListener('mouseleave', () => { desactivarTecla(tecla); btn.classList.remove('activo'); });
         });
 
-        document.addEventListener('keydown', (e) => { 
-            const tecla = e.key.toLowerCase();
-            if (!teclas[tecla]) { teclasPulsadas[tecla] = true; }
-            teclas[tecla] = true; 
-            e.preventDefault(); 
-            activarTecla(tecla);
-        });
+        document.addEventListener('keydown', (e) => { const tecla = e.key.toLowerCase(); if (!teclas[tecla]) { teclasPulsadas[tecla] = true; } teclas[tecla] = true; e.preventDefault(); activarTecla(tecla); });
         document.addEventListener('keyup', (e) => teclas[e.key.toLowerCase()] = false);
 
         const PERSONAJES = {
-            1: { nombre: 'Niña Punk', avatar: '001.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
-            2: { nombre: 'Abuela Tech', avatar: '002.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
-            3: { nombre: 'Abuela Cool', avatar: '003.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 },
-            4: { nombre: 'Carapan', avatar: '004.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 },
-            5: { nombre: 'Ainhoa la Guerrera', avatar: '005.png', spriteSheet: 'spritesheet5.png', vida: 140, velocidad: 4, daño: 9 },
-            6: { nombre: 'Joaquín el Tanque', avatar: '006.png', spriteSheet: 'spritesheet6.png', vida: 140, velocidad: 4, daño: 9 },
-            7: { nombre: 'Lia Dragón', avatar: '007.png', spriteSheet: 'spritesheet7.png', vida: 140, velocidad: 4, daño: 9 }
+            1: { nombre: 'Niña Punk', avatar: '001.png', avatarCara: 'cara1.png', spriteSheet: 'spritesheet.png', vida: 120, velocidad: 4, daño: 6 },
+            2: { nombre: 'Abuela Tech', avatar: '002.png', avatarCara: 'cara2.png', spriteSheet: 'spritesheet2.png', vida: 100, velocidad: 6, daño: 9 },
+            3: { nombre: 'Abuela Cool', avatar: '003.png', avatarCara: 'cara3.png', spriteSheet: 'spritesheet3.png', vida: 150, velocidad: 3, daño: 11 },
+            4: { nombre: 'Carapan', avatar: '004.png', avatarCara: 'cara4.png', spriteSheet: 'spritesheet4.png', vida: 140, velocidad: 4, daño: 9 },
+            5: { nombre: 'Ainhoa la Guerrera', avatar: '005.png', avatarCara: 'cara5.png', spriteSheet: 'spritesheet5.png', vida: 140, velocidad: 4, daño: 9 },
+            6: { nombre: 'Joaquín el Tanque', avatar: '006.png', avatarCara: 'cara6.png', spriteSheet: 'spritesheet6.png', vida: 140, velocidad: 4, daño: 9 },
+            7: { nombre: 'Lia Dragón', avatar: '007.png', avatarCara: 'cara7.png', spriteSheet: 'spritesheet7.png', vida: 140, velocidad: 4, daño: 9 }
         };
 
         const DIFICULTAD = {
-            1: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            2: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            3: { vidaExtra: 1.4,  velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            4: { vidaExtra: 1.5,  velocidadIA: 0.65, bloqueo: 0.050, ataque: 0.018, salto: 0.012 },
+            1: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            2: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            3: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
+            4: { vidaExtra: 1.5, velocidadIA: 0.65, bloqueo: 0.050, ataque: 0.018, salto: 0.012 },
             5: { vidaExtra: 1.55, velocidadIA: 0.70, bloqueo: 0.055, ataque: 0.020, salto: 0.013 },
-            6: { vidaExtra: 1.6,  velocidadIA: 0.75, bloqueo: 0.060, ataque: 0.022, salto: 0.015 },
-            7: { vidaExtra: 1.7,  velocidadIA: 0.80, bloqueo: 0.065, ataque: 0.025, salto: 0.018 }
+            6: { vidaExtra: 1.6, velocidadIA: 0.75, bloqueo: 0.060, ataque: 0.022, salto: 0.015 },
+            7: { vidaExtra: 1.7, velocidadIA: 0.80, bloqueo: 0.065, ataque: 0.025, salto: 0.018 }
         };
 
-        const HADOUKEN_RIVAL = {
-            1: 0.001,
-            2: 0.002,
-            3: 0.002,
-            4: 0.003,
-            5: 0.004,
-            6: 0.005,
-            7: 0.006
-        };
-
+        const HADOUKEN_RIVAL = { 1: 0.001, 2: 0.002, 3: 0.002, 4: 0.003, 5: 0.004, 6: 0.005, 7: 0.006 };
         let FRAME_WIDTH = 0, FRAME_HEIGHT = 0;
         const COLS = 5, ROWS = 2;
-
-        const ANIMACIONES = {
-            idle: [0, 0], caminar1: [0, 1], caminar2: [0, 2], saltando: [0, 3], puñetazo: [0, 4],
-            patada: [1, 0], especial: [1, 1], golpeado: [1, 2], derrotado: [1, 3], defensa: [1, 4]
-        };
+        const ANIMACIONES = { idle: [0, 0], caminar1: [0, 1], caminar2: [0, 2], saltando: [0, 3], puñetazo: [0, 4], patada: [1, 0], especial: [1, 1], golpeado: [1, 2], derrotado: [1, 3], defensa: [1, 4] };
 
         let spriteSheets = {}, jugadorConfig, rivalConfig, jugadorNum, rivalNum;
         let vidaJugador, vidaRival, vidaRivalMax, posXJugador, posXRival, tiempo = 60;
@@ -1196,94 +976,26 @@
 
         function ajustarTamanoLuchador(quien, numPersonaje) {
             const el = document.getElementById(quien);
-            if (numPersonaje === 6) {
-                el.classList.add('tanque');
-            } else {
-                el.classList.remove('tanque');
-            }
+            if (numPersonaje === 6) { el.classList.add('tanque'); } else { el.classList.remove('tanque'); }
         }
 
         function cargarSpriteSheets() {
             hadoukenImg = new Image();
             hadoukenImg.src = 'hadouken.png';
             hadoukenImg.onload = () => { console.log('✅ hadouken.png cargado'); };
-            hadoukenImg.onerror = () => { 
-                console.error('⚠️ No se pudo cargar hadouken.png - se usará fallback CSS');
-                hadoukenImg = null;
-            };
-
+            hadoukenImg.onerror = () => { console.error('⚠️ No se pudo cargar hadouken.png - se usará fallback CSS'); hadoukenImg = null; };
             perroSpriteSheet = new Image();
             perroSpriteSheet.src = 'spritesheet-perrito.png';
             perroSpriteSheet.onload = () => { console.log('✅ spritesheet-perrito.png cargado'); };
-            perroSpriteSheet.onerror = () => { 
-                console.error('⚠️ No se pudo cargar spritesheet-perrito.png');
-                perroSpriteSheet = null;
-            };
-            
+            perroSpriteSheet.onerror = () => { console.error('️ No se pudo cargar spritesheet-perrito.png'); perroSpriteSheet = null; };
             return Promise.all([
-                new Promise((resolve, reject) => {
-                    const img = new Image(); img.src = 'spritesheet.png';
-                    img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); };
-                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet.png'); reject(); };
-                }),
-                new Promise((resolve, reject) => {
-                    const img = new Image(); img.src = 'spritesheet2.png';
-                    img.onload = () => { spriteSheets[2] = img; resolve(); };
-                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet2.png'); reject(); };
-                }),
-                new Promise((resolve, reject) => {
-                    const img = new Image(); img.src = 'spritesheet3.png';
-                    img.onload = () => { spriteSheets[3] = img; resolve(); };
-                    img.onerror = () => { console.error('❌ No se pudo cargar spritesheet3.png'); reject(); };
-                }),
-                new Promise((resolve) => {
-                    const img = new Image(); img.src = 'spritesheet4.png';
-                    img.onload = () => { 
-                        spriteSheets[4] = img; 
-                        console.log('✅ spritesheet4.png (Carapan) cargado');
-                        resolve(); 
-                    };
-                    img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet4.png');
-                        resolve();
-                    };
-                }),
-                new Promise((resolve) => {
-                    const img = new Image(); img.src = 'spritesheet5.png';
-                    img.onload = () => { 
-                        spriteSheets[5] = img; 
-                        console.log('✅ spritesheet5.png (Ainhoa) cargado');
-                        resolve(); 
-                    };
-                    img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet5.png');
-                        resolve();
-                    };
-                }),
-                new Promise((resolve) => {
-                    const img = new Image(); img.src = 'spritesheet6.png';
-                    img.onload = () => { 
-                        spriteSheets[6] = img; 
-                        console.log('✅ spritesheet6.png (Joaquín) cargado');
-                        resolve(); 
-                    };
-                    img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet6.png');
-                        resolve();
-                    };
-                }),
-                new Promise((resolve) => {
-                    const img = new Image(); img.src = 'spritesheet7.png';
-                    img.onload = () => { 
-                        spriteSheets[7] = img; 
-                        console.log('✅ spritesheet7.png (Lia Dragón) cargado');
-                        resolve(); 
-                    };
-                    img.onerror = () => { 
-                        console.error('⚠️ No se pudo cargar spritesheet7.png');
-                        resolve();
-                    };
-                })
+                new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet.png'; img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet.png'); reject(); }; }),
+                new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet2.png'; img.onload = () => { spriteSheets[2] = img; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet2.png'); reject(); }; }),
+                new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet3.png'; img.onload = () => { spriteSheets[3] = img; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet3.png'); reject(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet4.png'; img.onload = () => { spriteSheets[4] = img; console.log('✅ spritesheet4.png (Carapan) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet4.png'); resolve(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet5.png'; img.onload = () => { spriteSheets[5] = img; console.log('✅ spritesheet5.png (Ainhoa) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet5.png'); resolve(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet6.png'; img.onload = () => { spriteSheets[6] = img; console.log('✅ spritesheet6.png (Joaquín) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet6.png'); resolve(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet7.png'; img.onload = () => { spriteSheets[7] = img; console.log('✅ spritesheet7.png (Lia Dragón) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet7.png'); resolve(); }; })
             ]);
         }
 
@@ -1306,22 +1018,12 @@
             dibujarFrame(canvas, spriteSheets[num], frame[0], frame[1], voltear);
         }
 
-        function detenerTimer() {
-            if (timerIntervalActual !== null) {
-                clearInterval(timerIntervalActual);
-                timerIntervalActual = null;
-            }
-        }
+        function detenerTimer() { if (timerIntervalActual !== null) { clearInterval(timerIntervalActual); timerIntervalActual = null; } }
 
         function iniciarRound() {
-            if (timeoutGanarRound) {
-                clearTimeout(timeoutGanarRound);
-                timeoutGanarRound = null;
-            }
+            if (timeoutGanarRound) { clearTimeout(timeoutGanarRound); timeoutGanarRound = null; }
             detenerTimer();
-            
             roundTerminado = false;
-            
             estadoJugador = 'idle';
             estadoRival = 'idle';
             estaSaltando = false;
@@ -1335,40 +1037,35 @@
             bufferInputs = [];
             ultimaTeclaDireccion = null;
             tiempoUltimaDireccion = 0;
-            
+            for (let tecla in teclas) { delete teclas[tecla]; }
+            for (let tecla in teclasPulsadas) { delete teclasPulsadas[tecla]; }
             intervalosSonidoPerro.forEach(id => clearInterval(id));
             intervalosSonidoPerro = [];
             perrosActivos = [];
             perrosInvocadosEnRound = 0;
-            
+            document.getElementById('jugador').style.filter = '';
+            document.getElementById('rival').style.filter = '';
             estadoJuego = 'combate';
             document.getElementById('modo-indicador').classList.add('oculto');
-            
             document.getElementById('pantalla-inicio').classList.add('oculto');
             document.getElementById('pantalla-final').classList.add('oculto');
             document.getElementById('pantalla-round').classList.remove('visible');
             document.getElementById('hud').classList.remove('oculto');
             document.getElementById('nombre-jugador').innerText = jugadorConfig.nombre;
             document.getElementById('nombre-rival').innerText = rivalConfig.nombre;
-            document.getElementById('round-info').innerText = 'Round ' + roundActual + '/' + ROUNDS_POR_COMBATE;
             actualizarMarcador();
-            
             const jugadorEl = document.getElementById('jugador');
             const rivalEl = document.getElementById('rival');
             jugadorEl.classList.remove('oculto'); 
             rivalEl.classList.remove('oculto');
-            
             ajustarTamanoLuchador('jugador', jugadorNum);
             ajustarTamanoLuchador('rival', rivalNum);
-            
             posXJugador = 30; 
             posXRival = 355;
-            
             jugadorEl.style.left = posXJugador + 'px'; 
             rivalEl.style.left = posXRival + 'px';
             jugadorEl.style.bottom = '2%';
             rivalEl.style.bottom = '2%';
-            
             vidaJugador = jugadorConfig.vida; 
             vidaRivalMax = Math.round(rivalConfig.vida * DIFICULTAD[rivalNum].vidaExtra);
             vidaRival = vidaRivalMax;
@@ -1376,16 +1073,11 @@
             actualizarFondo();
             mostrarAnuncio('¡ROUND ' + roundActual + '!');
             reproducirSonido('inicioround');
-            
             juegoActivo = true; 
             tiempo = 60;
             document.getElementById('timer').innerText = tiempo;
-            
             timerIntervalActual = setInterval(() => {
-                if (!juegoActivo || roundTerminado) { 
-                    detenerTimer();
-                    return; 
-                }
+                if (!juegoActivo || roundTerminado) { detenerTimer(); return; }
                 tiempo--;
                 document.getElementById('timer').innerText = tiempo;
                 if (tiempo <= 0) {
@@ -1405,79 +1097,55 @@
             if (!juegoActivo) return;
             const jugadorCanvas = document.querySelector('#jugador canvas');
             const rivalCanvas = document.querySelector('#rival canvas');
-            
             const pulsadoArriba = teclasPulsadas['arrowup'] || teclasPulsadas['diagonalupleft'] || teclasPulsadas['diagonalupright'];
             const pulsadoAbajo = teclasPulsadas['arrowdown'] || teclasPulsadas['diagonaldownleft'] || teclasPulsadas['diagonaldownright'];
             const pulsadoIzquierda = teclas['arrowleft'] || teclas['diagonalupleft'] || teclas['diagonaldownleft'];
             const pulsadoDerecha = teclas['arrowright'] || teclas['diagonalupright'] || teclas['diagonaldownright'];
-            
             let moviendose = false;
             if (teclas['v'] && estadoJugador === 'idle') { estaDefendiendo = true; estadoJugador = 'defensa'; }
             else if (!teclas['v'] && estadoJugador === 'defensa') { estaDefendiendo = false; estadoJugador = 'idle'; }
-            
             if (!estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado') {
                 if (pulsadoIzquierda && posXJugador > 0) { posXJugador -= jugadorConfig.velocidad; moviendose = true; }
                 if (pulsadoDerecha && posXJugador < 385) { posXJugador += jugadorConfig.velocidad; moviendose = true; }
-                
                 if (pulsadoArriba && !estaSaltando && estadoJugador === 'idle') {
                     estaSaltando = true;
                     estadoJugador = 'saltando';
                     const jugadorEl = document.getElementById('jugador');
                     jugadorEl.style.bottom = 'calc(2% + 50px)';
-                    
                     let direccionSalto = 0;
                     if (pulsadoIzquierda) direccionSalto = -1;
                     else if (pulsadoDerecha) direccionSalto = 1;
-                    
                     if (direccionSalto !== 0) {
                         const intervaloSalto = setInterval(() => {
-                            if (!estaSaltando) {
-                                clearInterval(intervaloSalto);
-                                return;
-                            }
+                            if (!estaSaltando) { clearInterval(intervaloSalto); return; }
                             posXJugador += direccionSalto * jugadorConfig.velocidad;
                             if (posXJugador < 0) posXJugador = 0;
                             if (posXJugador > 385) posXJugador = 385;
                         }, 16);
                     }
-                    
                     setTimeout(() => { jugadorEl.style.bottom = '2%'; }, 300);
-                    setTimeout(() => { 
-                        estaSaltando = false; 
-                        if (vidaJugador > 0) estadoJugador = 'idle'; 
-                    }, 600);
+                    setTimeout(() => { estaSaltando = false; if (vidaJugador > 0) estadoJugador = 'idle'; }, 600);
                 }
-                
                 if (moviendose && (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                     animTimer++;
                     if (animTimer < 15) estadoJugador = 'caminar1';
                     else if (animTimer < 30) estadoJugador = 'caminar2';
                     else animTimer = 0;
-                } else if (!moviendose && (estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
-                    estadoJugador = 'idle'; animTimer = 0;
-                }
+                } else if (!moviendose && (estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) { estadoJugador = 'idle'; animTimer = 0; }
             }
-            
             document.getElementById('jugador').style.left = posXJugador + 'px';
             actualizarFondo();
             const mirarDerechaJugador = posXRival > posXJugador;
             const frameJugador = ANIMACIONES[estadoJugador];
             dibujarFrame(jugadorCanvas, spriteSheets[jugadorNum], frameJugador[0], frameJugador[1], !mirarDerechaJugador);
-            
-            if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' &&
-                (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
+            if (!cooldownAtaque && !estaDefendiendo && !estaSaltando && estadoJugador !== 'derrotado' && (estadoJugador === 'idle' || estadoJugador === 'caminar1' || estadoJugador === 'caminar2')) {
                 if (teclasPulsadas['z']) atacar('puñetazo', jugadorConfig.daño, 300);
                 else if (teclasPulsadas['x']) atacar('patada', jugadorConfig.daño * 1.5, 400);
                 else if (teclasPulsadas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
             }
-
-            if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) {
-                atacar('patada', jugadorConfig.daño * 1.2, 400);
-            }
-            
+            if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) { atacar('patada', jugadorConfig.daño * 1.2, 400); }
             let moviendoseRival = false;
-            if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
-                estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
+            if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
                 if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
                 else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
                 if (moviendoseRival) {
@@ -1485,14 +1153,9 @@
                     if (animTimerRival < 15) estadoRival = 'caminar1';
                     else if (animTimerRival < 30) estadoRival = 'caminar2';
                     else animTimerRival = 0;
-                } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
-                    estadoRival = 'idle'; animTimerRival = 0;
-                }
+                } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') { estadoRival = 'idle'; animTimerRival = 0; }
                 const probBloqueo = DIFICULTAD[rivalNum].bloqueo;
-                if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
-                    estadoRival = 'defensa';
-                    setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
-                }
+                if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) { estadoRival = 'defensa'; setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800); }
                 if (Math.random() < DIFICULTAD[rivalNum].salto && !rivalSaltando && estadoRival === 'idle') {
                     rivalSaltando = true;
                     estadoRival = 'saltando';
@@ -1506,29 +1169,20 @@
             const mirarDerechaRival = posXJugador > posXRival;
             const frameRival = ANIMACIONES[estadoRival];
             dibujarFrame(rivalCanvas, spriteSheets[rivalNum], frameRival[0], frameRival[1], !mirarDerechaRival);
-            if (Math.random() < DIFICULTAD[rivalNum].ataque && Math.abs(posXRival - posXJugador) < 150 &&  
-                estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
-                estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado' && !rivalSaltando) {
+            if (Math.random() < DIFICULTAD[rivalNum].ataque && Math.abs(posXRival - posXJugador) < 150 && estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && estadoRival !== 'golpeado' && estadoRival !== 'defensa' && estadoRival !== 'derrotado' && !rivalSaltando) {
                 const ataques = ['puñetazo', 'patada', 'especial'];
                 const ataqueRival = ataques[Math.floor(Math.random() * ataques.length)];
-                const dañoRival = ataqueRival === 'puñetazo' ? rivalConfig.daño : 
-                                 ataqueRival === 'patada' ? rivalConfig.daño * 1.5 : rivalConfig.daño * 2.5;
+                const dañoRival = ataqueRival === 'puñetazo' ? rivalConfig.daño : ataqueRival === 'patada' ? rivalConfig.daño * 1.5 : rivalConfig.daño * 2.5;
                 const duracion = ataqueRival === 'puñetazo' ? 300 : ataqueRival === 'patada' ? 400 : 500;
                 atacarRival(ataqueRival, dañoRival, duracion);
             }
-            
             invocarPerro();
             actualizarPerros();
             dibujarPerros();
-            
             lanzarHadoukenRival();
-            
             actualizarBolasEnergia();
             dibujarBolasEnergia();
-            
-            for (let tecla in teclasPulsadas) {
-                delete teclasPulsadas[tecla];
-            }
+            for (let tecla in teclasPulsadas) { delete teclasPulsadas[tecla]; }
             requestAnimationFrame(bucleJuego);
         }
 
@@ -1539,28 +1193,14 @@
             if (distancia < 120) {
                 setTimeout(() => {
                     let dañoFinal = daño;
-                    if (estadoRival === 'defensa') {
-                        dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXRival, 'BLOQ'); 
-                        reproducirSonido('bloqueo');
-                    } else {
-                        estadoRival = 'golpeado';
-                        mostrarEfectoGolpe(posXRival, tipo);
-                        aplicarRetrocesoRival(tipo);
-                    }
+                    if (estadoRival === 'defensa') { dañoFinal = daño * 0.2; mostrarEfectoGolpe(posXRival, 'BLOQ'); reproducirSonido('bloqueo'); }
+                    else { estadoRival = 'golpeado'; mostrarEfectoGolpe(posXRival, tipo); aplicarRetrocesoRival(tipo); }
                     vidaRival -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'defensa') estadoRival = 'idle'; }, 300);
-                    if (vidaRival <= 0 && !roundTerminado) {
-                        roundTerminado = true;
-                        estadoRival = 'derrotado'; dibujarDerrotado('rival'); reproducirSonido('ko');
-                        setTimeout(() => { ganarRound(); }, 2000);
-                    }
+                    if (vidaRival <= 0 && !roundTerminado) { roundTerminado = true; estadoRival = 'derrotado'; dibujarDerrotado('rival'); reproducirSonido('ko'); setTimeout(() => { ganarRound(); }, 2000); }
                 }, 100);
             }
-            setTimeout(() => {
-                cooldownAtaque = false;
-                if (vidaRival > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') estadoJugador = 'idle';
-            }, duracion);
+            setTimeout(() => { cooldownAtaque = false; if (vidaRival > 0 && estadoJugador !== 'saltando' && estadoJugador !== 'defensa') estadoJugador = 'idle'; }, duracion);
         }
 
         function atacarRival(tipo, daño, duracion) {
@@ -1570,76 +1210,41 @@
             if (distancia < 120) {
                 setTimeout(() => {
                     let dañoFinal = daño;
-                    if (estaDefendiendo) {
-                        dañoFinal = daño * 0.2;
-                        mostrarEfectoGolpe(posXJugador, 'BLOQ'); 
-                        reproducirSonido('bloqueo');
-                    } else {
-                        estadoJugador = 'golpeado';
-                        mostrarEfectoGolpe(posXJugador, tipo);
-                        aplicarRetrocesoJugador(tipo);
-                    }
+                    if (estaDefendiendo) { dañoFinal = daño * 0.2; mostrarEfectoGolpe(posXJugador, 'BLOQ'); reproducirSonido('bloqueo'); }
+                    else { estadoJugador = 'golpeado'; mostrarEfectoGolpe(posXJugador, tipo); aplicarRetrocesoJugador(tipo); }
                     vidaJugador -= dañoFinal; actualizarBarrasVida();
                     setTimeout(() => { if (vidaJugador > 0 && !estaDefendiendo) estadoJugador = 'idle'; }, 300);
-                    if (vidaJugador <= 0 && !roundTerminado) {
-                        roundTerminado = true;
-                        estadoJugador = 'derrotado'; dibujarDerrotado('jugador'); reproducirSonido('ko');
-                        setTimeout(() => { perderRound(); }, 2000);
-                    }
+                    if (vidaJugador <= 0 && !roundTerminado) { roundTerminado = true; estadoJugador = 'derrotado'; dibujarDerrotado('jugador'); reproducirSonido('ko'); setTimeout(() => { perderRound(); }, 2000); }
                 }, 100);
             }
-            setTimeout(() => {
-                if (vidaRival > 0 && estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') estadoRival = 'idle';
-            }, duracion);
+            setTimeout(() => { if (vidaRival > 0 && estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') estadoRival = 'idle'; }, duracion);
         }
 
         function ganarRound() {
-            if (roundTerminado === false) {
-                roundTerminado = true;
-            }
+            if (roundTerminado === false) { roundTerminado = true; }
             if (!juegoActivo) return;
-            
             juegoActivo = false;
             detenerTimer();
-            
             victoriasJugador = Math.min(2, victoriasJugador + 1);
             actualizarMarcador(); 
             reproducirSonido('victoria');
-            
             timeoutGanarRound = setTimeout(() => {
                 if (victoriasJugador >= 2) {
-                    if (indiceRivalActual >= rivalesDisponibles.length - 1) {
-                        mostrarResultadoFinal(true);
-                    } else {
-                        mostrarPantallaCombate(true);
-                    }
-                } else {
-                    roundActual++;
-                    iniciarRound();
-                }
+                    if (indiceRivalActual >= rivalesDisponibles.length - 1) { mostrarResultadoFinal(true); } else { iniciarSiguienteCombate(); }
+                } else { roundActual++; iniciarRound(); }
             }, 2000);
         }
 
         function perderRound() {
-            if (roundTerminado === false) {
-                roundTerminado = true;
-            }
+            if (roundTerminado === false) { roundTerminado = true; }
             if (!juegoActivo) return;
-            
             juegoActivo = false;
             detenerTimer();
-            
             victoriasRival = Math.min(2, victoriasRival + 1);
             actualizarMarcador(); 
             reproducirSonido('derrota');
-            
             timeoutGanarRound = setTimeout(() => {
-                if (victoriasRival >= 2) {
-                    mostrarPantallaCombatePerdido();
-                } else {
-                    roundActual++;
-                    iniciarRound();
-                }
+                if (victoriasRival >= 2) { mostrarPantallaCombatePerdido(); } else { roundActual++; iniciarRound(); }
             }, 2000);
         }
 
@@ -1648,42 +1253,15 @@
             const indicador = document.getElementById('modo-indicador');
             indicador.innerText = 'GAME OVER: Pulsa A para reiniciar';
             indicador.classList.remove('oculto');
-            
             document.getElementById('hud').classList.add('oculto');
             document.getElementById('jugador').classList.add('oculto');
             document.getElementById('rival').classList.add('oculto');
-            
             const titulo = document.getElementById('resultado-final-titulo');
             const resultado = document.getElementById('resultado-final');
             titulo.innerText = '¡DERROTADO!';
             titulo.style.color = '#f00';
-            resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">' + rivalConfig.nombre + ' te ha vencido</p>' +
-                '<p style="color: #fff;">Marcador: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' +
-                '<p style="color: #ff0;">Inténtalo de nuevo</p>';
+            resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">' + rivalConfig.nombre + ' te ha vencido</p>' + '<p style="color: #fff;">Marcador: ' + victoriasJugador + ' - ' + victoriasRival + '</p>' + '<p style="color: #ff0;">Inténtalo de nuevo</p>';
             document.getElementById('pantalla-final').classList.remove('oculto');
-        }
-
-        function mostrarPantallaCombate(ganoCombate) {
-            estadoJuego = 'round';
-            const indicador = document.getElementById('modo-indicador');
-            indicador.innerText = 'FIN DE COMBATE: Pulsa A para continuar';
-            indicador.classList.remove('oculto');
-            
-            indiceRivalActual++;
-            rivalNum = rivalesDisponibles[indiceRivalActual];
-            rivalConfig = PERSONAJES[rivalNum];
-            
-            roundActual = 1;
-            victoriasJugador = 0;
-            victoriasRival = 0;
-            
-            const titulo = document.getElementById('round-titulo');
-            const mensaje = document.getElementById('round-mensaje');
-            titulo.innerText = '¡COMBATE GANADO!';
-            titulo.style.color = '#0f0';
-            mensaje.innerText = '¡Superaste a ' + PERSONAJES[rivalesDisponibles[indiceRivalActual - 1]].nombre + '!\n' + 
-                                'Siguiente rival: ' + rivalConfig.nombre;
-            document.getElementById('pantalla-round').classList.add('visible');
         }
 
         function siguienteRound() {
@@ -1699,7 +1277,6 @@
             const indicador = document.getElementById('modo-indicador');
             indicador.innerText = 'FIN DEL JUEGO: Pulsa A para reiniciar';
             indicador.classList.remove('oculto');
-            
             document.getElementById('hud').classList.add('oculto');
             document.getElementById('jugador').classList.add('oculto');
             document.getElementById('rival').classList.add('oculto');
@@ -1707,14 +1284,10 @@
             const resultado = document.getElementById('resultado-final');
             if (gano) {
                 titulo.innerText = '¡CAMPEÓN!'; titulo.style.color = '#0f0';
-                resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Derrotaste a todos los rivales!</p>' +
-                    '<p style="color: #fff;">Incluidos Carapan, Ainhoa, Joaquín y Lia Dragón</p>' +
-                    '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
+                resultado.innerHTML = '<p style="color: #0f0; font-size: 16px;">¡Derrotaste a todos los rivales!</p>' + '<p style="color: #fff;">Incluidos Carapan, Ainhoa, Joaquín y Lia Dragón</p>' + '<p style="color: #ff0;">¡Eres el campeón de CHONY GAMEBOY!</p>';
             } else {
                 titulo.innerText = '¡GAME OVER!'; titulo.style.color = '#f00';
-                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Has sido derrotado</p>' +
-                    '<p style="color: #fff;">No pudiste vencer a todos los rivales</p>' +
-                    '<p style="color: #ff0;">Inténtalo de nuevo</p>';
+                resultado.innerHTML = '<p style="color: #f00; font-size: 16px;">Has sido derrotado</p>' + '<p style="color: #fff;">No pudiste vencer a todos los rivales</p>' + '<p style="color: #ff0;">Inténtalo de nuevo</p>';
             }
             document.getElementById('pantalla-final').classList.remove('oculto');
         }
@@ -1722,17 +1295,11 @@
         function actualizarMarcador() {
             for (let i = 1; i <= 3; i++) {
                 const dot = document.getElementById('v-j' + i);
-                if (dot) {
-                    dot.classList.remove('ganada-jugador');
-                    if (i <= victoriasJugador) dot.classList.add('ganada-jugador');
-                }
+                if (dot) { dot.classList.remove('ganada-jugador'); if (i <= victoriasJugador) dot.classList.add('ganada-jugador'); }
             }
             for (let i = 1; i <= 3; i++) {
                 const dot = document.getElementById('v-r' + i);
-                if (dot) {
-                    dot.classList.remove('ganada-rival');
-                    if (i <= victoriasRival) dot.classList.add('ganada-rival');
-                }
+                if (dot) { dot.classList.remove('ganada-rival'); if (i <= victoriasRival) dot.classList.add('ganada-rival'); }
             }
         }
 
@@ -1756,16 +1323,13 @@
         }
 
         function actualizarBarrasVida() {
+            // NUEVO: Las barras se ajustan con width, pero el CSS (float y transform-origin) hace que se vacíen hacia los lados correctos.
             document.getElementById('vida-jugador').style.width = Math.max(0, (vidaJugador / jugadorConfig.vida) * 100) + '%';
             document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / vidaRivalMax) * 100) + '%';
         }
 
         actualizarSeleccionMenu();
-        cargarSpriteSheets().then(() => {
-            console.log('✅ Spritesheets cargados:', Object.keys(spriteSheets).length, 'personajes');
-        }).catch((e) => {
-            console.error('❌ Error cargando spritesheets:', e);
-        });
+        cargarSpriteSheets().then(() => { console.log('✅ Spritesheets cargados:', Object.keys(spriteSheets).length, 'personajes'); }).catch((e) => { console.error('❌ Error cargando spritesheets:', e); });
     </script>
 </body>
 </html>
