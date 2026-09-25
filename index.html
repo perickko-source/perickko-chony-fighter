@@ -78,7 +78,6 @@
             pointer-events: none;
         }
 
-        /* --- NUEVO HUD --- */
         #hud {
             position: absolute;
             top: 5px;
@@ -115,15 +114,14 @@
             transition: width 0.3s ease-out;
         }
 
-        /* Invertir el origen de la transformación para que se vacíen hacia los lados */
         .hud-lado.izquierda .barra-vida {
             transform-origin: right center;
-            float: right; /* Para que se pegue a la derecha */
+            float: right;
         }
 
         .hud-lado.derecha .barra-vida {
             transform-origin: left center;
-            float: left; /* Para que se pegue a la izquierda */
+            float: left;
         }
 
         .nombre-luchador {
@@ -147,7 +145,7 @@
         .victoria-dot {
             width: 8px;
             height: 8px;
-            border-radius: 2px; /* Cuadraditos en lugar de círculos */
+            border-radius: 2px;
             background: #333;
             border: 1px solid #666;
         }
@@ -169,7 +167,7 @@
             flex-direction: column;
             align-items: center;
             width: 25%;
-            margin-top: -5px; /* Subir un poco el timer para alinearlo con las barras */
+            margin-top: -5px;
         }
 
         #timer {
@@ -184,7 +182,6 @@
             justify-content: center;
             border-radius: 3px;
         }
-        /* --- FIN NUEVO HUD --- */
 
         .luchador {
             position: absolute;
@@ -413,9 +410,7 @@
                 <div id="juego">
                     <div id="modo-indicador">MENÚ: Elige personaje</div>
 
-                    <!-- NUEVO HUD -->
                     <div id="hud" class="oculto">
-                        <!-- Lado Izquierdo (Jugador) -->
                         <div class="hud-lado izquierda">
                             <div class="barra-vida-container">
                                 <div class="barra-vida" id="vida-jugador" style="width: 100%;"></div>
@@ -428,12 +423,10 @@
                             </div>
                         </div>
 
-                        <!-- Centro (Timer) -->
                         <div id="timer-container">
                             <div id="timer">60</div>
                         </div>
 
-                        <!-- Lado Derecho (Rival) -->
                         <div class="hud-lado derecha">
                             <div class="barra-vida-container">
                                 <div class="barra-vida" id="vida-rival" style="width: 100%;"></div>
@@ -947,13 +940,13 @@
         };
 
         const DIFICULTAD = {
-            1: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            2: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            3: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010 },
-            4: { vidaExtra: 1.5, velocidadIA: 0.65, bloqueo: 0.050, ataque: 0.018, salto: 0.012 },
-            5: { vidaExtra: 1.55, velocidadIA: 0.70, bloqueo: 0.055, ataque: 0.020, salto: 0.013 },
-            6: { vidaExtra: 1.6, velocidadIA: 0.75, bloqueo: 0.060, ataque: 0.022, salto: 0.015 },
-            7: { vidaExtra: 1.7, velocidadIA: 0.80, bloqueo: 0.065, ataque: 0.025, salto: 0.018 }
+            1: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010, repliegue: 0.08 },
+            2: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010, repliegue: 0.08 },
+            3: { vidaExtra: 1.4, velocidadIA: 0.60, bloqueo: 0.040, ataque: 0.015, salto: 0.010, repliegue: 0.08 },
+            4: { vidaExtra: 1.5, velocidadIA: 0.65, bloqueo: 0.050, ataque: 0.018, salto: 0.012, repliegue: 0.10 },
+            5: { vidaExtra: 1.55, velocidadIA: 0.70, bloqueo: 0.055, ataque: 0.020, salto: 0.013, repliegue: 0.12 },
+            6: { vidaExtra: 1.6, velocidadIA: 0.75, bloqueo: 0.060, ataque: 0.022, salto: 0.015, repliegue: 0.15 },
+            7: { vidaExtra: 1.7, velocidadIA: 0.80, bloqueo: 0.065, ataque: 0.025, salto: 0.018, repliegue: 0.18 }
         };
 
         const HADOUKEN_RIVAL = { 1: 0.001, 2: 0.002, 3: 0.002, 4: 0.003, 5: 0.004, 6: 0.005, 7: 0.006 };
@@ -968,6 +961,11 @@
         let animTimer = 0, animTimerRival = 0;
         let estaSaltando = false, estaDefendiendo = false;
         let rivalSaltando = false;
+        // Variables para controlar el repliegue con cooldown
+        let rivalEnRepliegue = false;
+        let framesRepliegue = 0;
+        let framesDesdeUltimoRepliegue = 0; // Cooldown entre repliegues
+        
         let roundActual = 1;
         const ROUNDS_POR_COMBATE = 3;
         let victoriasJugador = 0, victoriasRival = 0;
@@ -983,7 +981,7 @@
             hadoukenImg = new Image();
             hadoukenImg.src = 'hadouken.png';
             hadoukenImg.onload = () => { console.log('✅ hadouken.png cargado'); };
-            hadoukenImg.onerror = () => { console.error('⚠️ No se pudo cargar hadouken.png - se usará fallback CSS'); hadoukenImg = null; };
+            hadoukenImg.onerror = () => { console.error('️ No se pudo cargar hadouken.png - se usará fallback CSS'); hadoukenImg = null; };
             perroSpriteSheet = new Image();
             perroSpriteSheet.src = 'spritesheet-perrito.png';
             perroSpriteSheet.onload = () => { console.log('✅ spritesheet-perrito.png cargado'); };
@@ -992,8 +990,8 @@
                 new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet.png'; img.onload = () => { spriteSheets[1] = img; FRAME_WIDTH = img.width / COLS; FRAME_HEIGHT = img.height / ROWS; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet.png'); reject(); }; }),
                 new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet2.png'; img.onload = () => { spriteSheets[2] = img; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet2.png'); reject(); }; }),
                 new Promise((resolve, reject) => { const img = new Image(); img.src = 'spritesheet3.png'; img.onload = () => { spriteSheets[3] = img; resolve(); }; img.onerror = () => { console.error('❌ No se pudo cargar spritesheet3.png'); reject(); }; }),
-                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet4.png'; img.onload = () => { spriteSheets[4] = img; console.log('✅ spritesheet4.png (Carapan) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet4.png'); resolve(); }; }),
-                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet5.png'; img.onload = () => { spriteSheets[5] = img; console.log('✅ spritesheet5.png (Ainhoa) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet5.png'); resolve(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet4.png'; img.onload = () => { spriteSheets[4] = img; console.log('✅ spritesheet4.png (Carapan) cargado'); resolve(); }; img.onerror = () => { console.error('️ No se pudo cargar spritesheet4.png'); resolve(); }; }),
+                new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet5.png'; img.onload = () => { spriteSheets[5] = img; console.log('✅ spritesheet5.png (Ainhoa) cargado'); resolve(); }; img.onerror = () => { console.error('️ No se pudo cargar spritesheet5.png'); resolve(); }; }),
                 new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet6.png'; img.onload = () => { spriteSheets[6] = img; console.log('✅ spritesheet6.png (Joaquín) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet6.png'); resolve(); }; }),
                 new Promise((resolve) => { const img = new Image(); img.src = 'spritesheet7.png'; img.onload = () => { spriteSheets[7] = img; console.log('✅ spritesheet7.png (Lia Dragón) cargado'); resolve(); }; img.onerror = () => { console.error('⚠️ No se pudo cargar spritesheet7.png'); resolve(); }; })
             ]);
@@ -1032,6 +1030,10 @@
             cooldownAtaque = false;
             animTimer = 0;
             animTimerRival = 0;
+            // Resetear variables de repliegue
+            rivalEnRepliegue = false;
+            framesRepliegue = 0;
+            framesDesdeUltimoRepliegue = 0;
             juegoActivo = false;
             bolasEnergia = [];
             bufferInputs = [];
@@ -1144,18 +1146,84 @@
                 else if (teclasPulsadas['c']) atacar('especial', jugadorConfig.daño * 2.5, 500);
             }
             if (!cooldownAtaque && estaSaltando && teclasPulsadas['x']) { atacar('patada', jugadorConfig.daño * 1.2, 400); }
+            
+            // EQUILIBRADO: IA del rival con repliegue esporádico (con cooldown entre repliegues)
             let moviendoseRival = false;
-            if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
-                if (posXRival > posXJugador + 100) { posXRival -= rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
-                else if (posXRival < posXJugador - 100) { posXRival += rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA; moviendoseRival = true; }
+            if (estadoRival !== 'puñetazo' && estadoRival !== 'patada' && estadoRival !== 'especial' && 
+                estadoRival !== 'golpeado' && estadoRival !== 'derrotado' && estadoRival !== 'defensa') {
+                
+                const distancia = Math.abs(posXRival - posXJugador);
+                const rivalADerecha = posXRival > posXJugador;
+                const velocidadBase = rivalConfig.velocidad * DIFICULTAD[rivalNum].velocidadIA;
+                
+                // Si está en modo repliegue, continuar replegándose hasta que se acaben los frames
+                if (rivalEnRepliegue && framesRepliegue > 0) {
+                    // Repliegue: alejarse del jugador
+                    if (rivalADerecha) {
+                        posXRival += velocidadBase;
+                    } else {
+                        posXRival -= velocidadBase;
+                    }
+                    framesRepliegue--;
+                    moviendoseRival = true;
+                    
+                    // Si llega al borde, cancelar el repliegue
+                    if (posXRival <= 5 || posXRival >= 380) {
+                        rivalEnRepliegue = false;
+                        framesRepliegue = 0;
+                        framesDesdeUltimoRepliegue = 0; // Reiniciar cooldown
+                    }
+                } else {
+                    // No está en repliegue: comportamiento normal (acercarse)
+                    // Contar frames desde el último repliegue
+                    framesDesdeUltimoRepliegue++;
+                    
+                    // COOLDOWN: debe pasar al menos 3 segundos (180 frames a 60fps) antes de poder replegarse de nuevo
+                    const cooldownMinimo = 180; // 3 segundos
+                    
+                    // Solo puede iniciar un nuevo repliegue si:
+                    // 1. Ha pasado el cooldown mínimo
+                    // 2. Está a distancia media-lejana (120-300 px)
+                    if (framesDesdeUltimoRepliegue >= cooldownMinimo && distancia > 120 && distancia < 300) {
+                        const probRepliegue = DIFICULTAD[rivalNum].repliegue || 0.08;
+                        if (Math.random() < probRepliegue) {
+                            // INICIAR REPLIEGUE: durará entre 30 y 50 frames (0.5 a 0.8 segundos)
+                            rivalEnRepliegue = true;
+                            framesRepliegue = 30 + Math.floor(Math.random() * 20);
+                            framesDesdeUltimoRepliegue = 0; // Reiniciar cooldown
+                        }
+                    }
+                    
+                    // Acercarse al jugador (comportamiento por defecto)
+                    if (distancia > 100) {
+                        if (rivalADerecha) {
+                            posXRival -= velocidadBase;
+                        } else {
+                            posXRival += velocidadBase;
+                        }
+                        moviendoseRival = true;
+                    }
+                }
+                
+                // Limitar a los bordes de la pantalla
+                if (posXRival < 0) posXRival = 0;
+                if (posXRival > 385) posXRival = 385;
+                
+                // Animación de caminar
                 if (moviendoseRival) {
                     animTimerRival++;
                     if (animTimerRival < 15) estadoRival = 'caminar1';
                     else if (animTimerRival < 30) estadoRival = 'caminar2';
                     else animTimerRival = 0;
-                } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') { estadoRival = 'idle'; animTimerRival = 0; }
+                } else if (estadoRival === 'caminar1' || estadoRival === 'caminar2') {
+                    estadoRival = 'idle'; animTimerRival = 0;
+                }
+                
                 const probBloqueo = DIFICULTAD[rivalNum].bloqueo;
-                if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) { estadoRival = 'defensa'; setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800); }
+                if (Math.random() < probBloqueo && Math.abs(posXRival - posXJugador) < 200) {
+                    estadoRival = 'defensa';
+                    setTimeout(() => { if (estadoRival === 'defensa') estadoRival = 'idle'; }, 800);
+                }
                 if (Math.random() < DIFICULTAD[rivalNum].salto && !rivalSaltando && estadoRival === 'idle') {
                     rivalSaltando = true;
                     estadoRival = 'saltando';
@@ -1323,7 +1391,6 @@
         }
 
         function actualizarBarrasVida() {
-            // NUEVO: Las barras se ajustan con width, pero el CSS (float y transform-origin) hace que se vacíen hacia los lados correctos.
             document.getElementById('vida-jugador').style.width = Math.max(0, (vidaJugador / jugadorConfig.vida) * 100) + '%';
             document.getElementById('vida-rival').style.width = Math.max(0, (vidaRival / vidaRivalMax) * 100) + '%';
         }
